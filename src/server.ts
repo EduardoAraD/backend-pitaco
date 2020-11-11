@@ -1,10 +1,11 @@
 import express from 'express'
-import '@controllers/UserController'
+import routesAuth from './routes/auth'
+
+import './database/connection'
 
 const app = express()
 
-app.get('/', (request, response) => {
-  return response.json({ message: 'Hello World' })
-})
+app.use(express.json())
+app.use(routesAuth)
 
 app.listen(3333)
