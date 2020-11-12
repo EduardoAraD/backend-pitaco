@@ -22,18 +22,18 @@ export class createPoints1605114158842 implements MigrationInterface {
           type: 'varchar'
         },
         {
-          name: 'user_id',
+          name: 'userId',
           type: 'integer'
         },
         {
-          name: 'league_id',
+          name: 'leagueId',
           type: 'integer'
         }
       ],
       foreignKeys: [
         {
           name: 'PointsUser',
-          columnNames: ['user_id'],
+          columnNames: ['userId'],
           referencedTableName: 'users',
           referencedColumnNames: ['id'],
           onUpdate: 'CASCADE',
@@ -41,7 +41,7 @@ export class createPoints1605114158842 implements MigrationInterface {
         },
         {
           name: 'PointsLeague',
-          columnNames: ['league_id'],
+          columnNames: ['leagueId'],
           referencedTableName: 'leagues',
           referencedColumnNames: ['id'],
           onUpdate: 'CASCADE',

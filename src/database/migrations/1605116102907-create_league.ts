@@ -18,14 +18,14 @@ export class createLeague1605116102907 implements MigrationInterface {
           type: 'varchar'
         },
         {
-          name: 'dono_id',
+          name: 'donoId',
           type: 'integer'
         }
       ],
       foreignKeys: [
         {
           name: 'LeagueDono',
-          columnNames: ['dono_id'],
+          columnNames: ['donoId'],
           referencedTableName: 'users',
           referencedColumnNames: ['id'],
           onUpdate: 'CASCADE',

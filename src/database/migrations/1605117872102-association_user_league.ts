@@ -14,18 +14,18 @@ export class associationUserLeague1605117872102 implements MigrationInterface {
           generationStrategy: 'increment'
         },
         {
-          name: 'user_id',
+          name: 'userId',
           type: 'integer'
         },
         {
-          name: 'league_id',
+          name: 'leagueId',
           type: 'integer'
         }
       ],
       foreignKeys: [
         {
           name: 'AssociationUser',
-          columnNames: ['user_id'],
+          columnNames: ['userId'],
           referencedTableName: 'users',
           referencedColumnNames: ['id'],
           onUpdate: 'CASCADE',
@@ -33,7 +33,7 @@ export class associationUserLeague1605117872102 implements MigrationInterface {
         },
         {
           name: 'AssociationLeague',
-          columnNames: ['league_id'],
+          columnNames: ['leagueId'],
           referencedTableName: 'leagues',
           referencedColumnNames: ['id'],
           onUpdate: 'CASCADE',

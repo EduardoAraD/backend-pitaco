@@ -22,18 +22,18 @@ export class createPitaco1605119390719 implements MigrationInterface {
           type: 'integer'
         },
         {
-          name: 'user_id',
+          name: 'userId',
           type: 'integer'
         },
         {
-          name: 'match_id',
+          name: 'matchId',
           type: 'integer'
         }
       ],
       foreignKeys: [
         {
           name: 'PitacoUser',
-          columnNames: ['user_id'],
+          columnNames: ['userId'],
           referencedTableName: 'users',
           referencedColumnNames: ['id'],
           onUpdate: 'CASCADE',
