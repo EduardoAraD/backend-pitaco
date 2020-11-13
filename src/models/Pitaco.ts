@@ -1,4 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm'
+import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, ManyToOne } from 'typeorm'
+
+import Users from './Users'
 
 @Entity('pitaco')
 export default class Pitaco {
@@ -13,4 +15,8 @@ export default class Pitaco {
 
     @Column()
     matchId: number;
+
+    @ManyToOne(() => Users, user => user.pitacos)
+    @JoinColumn({ name: 'userId' })
+    userId: Users
 }
