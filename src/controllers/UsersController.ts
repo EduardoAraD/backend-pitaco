@@ -124,7 +124,7 @@ export default {
 
     const usersRepository = getRepository(Users)
 
-    const user = await usersRepository.findOne({ email: data.email })
+    const user = await usersRepository.findOne({ email: data.email }, { relations: ['points'] })
 
     if (user && bcrypt.compareSync(data.password, user.password)) {
       const token = jwt.sign({ ...user }, process.env.AUTHSECRET as string, {
