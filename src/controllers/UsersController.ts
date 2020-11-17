@@ -2,6 +2,9 @@ import { getRepository } from 'typeorm'
 import { Request, Response } from 'express'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
+import crypto from 'crypto'
+
+import { transport as mailer } from '../config/mailer'
 
 import Users from '@models/Users'
 import Leagues from '@models/Leagues'
@@ -134,7 +137,82 @@ export default {
     }
   },
 
-  async forgotPassword (request: Request, response: Response) {},
+  async forgotPassword (request: Request, response: Response) {
+    const { email } = request.body
 
-  async resetPassword (request: Request, response: Response) {}
+    try {
+      const usersRepository = getRepository(Users)
+
+      const user = await usersRepository.findOne({ email })
+      if (!user) {
+        return response.status(400).send({ error: 'User not found' })
+      }
+
+      const code = crypto.randomBytes(6).toString('hex')
+      const now = new Date()
+      now.setHours(now.getHours() + 2)
+
+      await usersRepository.update(user.id, {
+        codeResetPassword: code,
+        codeResetExpires: now.toString()
+      })
+
+      mailer.sendMail({
+        to: email,
+        from: `PitacoApp <${process.env.EMAIL}>`,
+        subject: 'Recuperação de Senha',
+        html: `<div>
+          <p>Você esqueceu sua senha?Pegue o código a baixo</p>
+          <h2>${code}</h2>
+          <p>E utilize para refazer sua senha.</p>
+        </div>`
+      }, (err) => {
+        if (err) {
+          return response.status(400).send({ error: 'Cannot send forgot password email' })
+        }
+      })
+
+      return response.send()
+    } catch (err) {
+      console.log(err)
+      return response.status(400).send({ error: 'Erro on forget password, try again' })
+    }
+  },
+
+  async resetPassword (request: Request, response: Response) {
+    const { code, password, confirmPassword } = request.body
+
+    try {
+      const usersRepository = getRepository(Users)
+
+      const user = await usersRepository.findOne({ codeResetPassword: code })
+      if (!user) {
+        return response.status(400).send({ error: 'User not found' })
+      }
+
+      const now = new Date()
+      const codeExpires = new Date(user.codeResetExpires)
+      if (now > codeExpires) {
+        return response.status(400).send({ error: 'Code expires' })
+      }
+
+      const salt = bcrypt.genSaltSync()
+      const passwordHash = bcrypt.hashSync(password, salt)
+
+      if (!bcrypt.compareSync(confirmPassword, passwordHash)) {
+        return response.status(400).send({ error: 'Passwords do not match' })
+      }
+
+      await usersRepository.update(user.id, {
+        codeResetPassword: '',
+        codeResetExpires: '',
+        password: passwordHash
+      })
+
+      return response.send()
+    } catch (err) {
+      console.log(err)
+      return response.status(400).send({ error: 'Erro on reset password, try again' })
+    }
+  }
 }
