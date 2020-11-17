@@ -1,4 +1,6 @@
-import User from '@models/User'
+import User from '@models/Users'
+
+import pointsView from './points_view'
 
 export default {
   render (token: string, user: User) {
@@ -6,7 +8,8 @@ export default {
       token: token,
       user: {
         name: user.name,
-        email: user.email
+        email: user.email,
+        points: pointsView.renderManyNotUser(user.points)
       }
     }
   },
