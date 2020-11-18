@@ -2,6 +2,7 @@ import { Router } from 'express'
 
 import UsersController from '@controllers/UsersController'
 import LeaguesController from '@controllers/LeaguesController'
+import PitacoController from '@controllers/PitacoController'
 
 const routes = Router()
 
@@ -15,5 +16,8 @@ routes.get('/leagues/:id', LeaguesController.show)
 routes.post('/league', LeaguesController.create)
 routes.post('/league-dono', LeaguesController.showLeagueDono)
 routes.delete('/leagues/:id', LeaguesController.delete)
+
+routes.get('/pitacos', PitacoController.index)
+routes.post('/pitacos', PitacoController.create)
 
 export default routes
