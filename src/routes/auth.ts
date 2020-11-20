@@ -18,6 +18,8 @@ routes.post('/league-dono', LeaguesController.showLeagueDono)
 routes.delete('/leagues/:id', LeaguesController.delete)
 
 routes.get('/pitacos', PitacoController.index)
-routes.post('/pitacos', PitacoController.create)
+routes.post('/pitacos', PitacoController.createUpdate)
+routes.post('/pitacos/user', PitacoController.showUser)
+routes.post('/pitaco/result', PitacoController.resultPitaco)
 
 export default routes
