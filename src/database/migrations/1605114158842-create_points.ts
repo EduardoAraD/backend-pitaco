@@ -15,11 +15,11 @@ export class createPoints1605114158842 implements MigrationInterface {
         },
         {
           name: 'points',
-          type: 'varchar'
+          type: 'integer'
         },
         {
           name: 'exactScore',
-          type: 'varchar'
+          type: 'integer'
         },
         {
           name: 'userId',
