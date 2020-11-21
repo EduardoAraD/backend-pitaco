@@ -11,6 +11,12 @@ export default class Championship {
     @Column()
     name: string
 
+    @Column()
+    status: string
+
+    @Column()
+    currentRodada: number
+
     @OneToMany(() => Rodada, rodada => rodada.championshipId, {
       cascade: ['insert', 'update']
     })

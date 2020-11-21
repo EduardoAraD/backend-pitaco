@@ -16,6 +16,14 @@ export class createChampionship1605894058545 implements MigrationInterface {
         {
           name: 'name',
           type: 'varchar'
+        },
+        {
+          name: 'status',
+          type: 'varchar'
+        },
+        {
+          name: 'currentRodada',
+          type: 'integer'
         }
       ]
     }))
