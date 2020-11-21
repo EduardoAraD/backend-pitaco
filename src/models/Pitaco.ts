@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, ManyToOne } from 'typeorm'
 
+import Match from './Match'
 import Users from './Users'
 
 @Entity('pitaco')
@@ -18,5 +19,9 @@ export default class Pitaco {
 
     @ManyToOne(() => Users, user => user.pitacos)
     @JoinColumn({ name: 'userId' })
-    userId: Users
+    userId: Users;
+
+    @ManyToOne(() => Match, match => match.pitacos)
+    @JoinColumn({ name: 'matchIdSistem' })
+    matchIdSistem: Match
 }

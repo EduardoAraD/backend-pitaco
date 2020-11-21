@@ -28,6 +28,10 @@ export class createPitaco1605119390719 implements MigrationInterface {
         {
           name: 'matchId',
           type: 'integer'
+        },
+        {
+          name: 'matchIdSistem',
+          type: 'integer'
         }
       ],
       foreignKeys: [
@@ -35,6 +39,14 @@ export class createPitaco1605119390719 implements MigrationInterface {
           name: 'PitacoUser',
           columnNames: ['userId'],
           referencedTableName: 'users',
+          referencedColumnNames: ['id'],
+          onUpdate: 'CASCADE',
+          onDelete: 'CASCADE'
+        },
+        {
+          name: 'PitacoMatch',
+          columnNames: ['matchIdSistem'],
+          referencedTableName: 'match',
           referencedColumnNames: ['id'],
           onUpdate: 'CASCADE',
           onDelete: 'CASCADE'
