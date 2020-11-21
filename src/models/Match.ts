@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm'
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm'
+import Pitaco from './Pitaco'
 
 import Rodada from './Rodada'
 
@@ -11,19 +12,16 @@ export default class Match {
     matchId: number
 
     @Column()
-    numRodada: number
-
-    @Column()
     status: string
 
     @Column()
     stadium: string
 
     @Column()
-    timeHour: string
+    hour: string
 
     @Column()
-    day: string
+    date: string
 
     @Column()
     clubeHome: string
@@ -46,4 +44,9 @@ export default class Match {
     @ManyToOne(() => Rodada, rodada => rodada.matchs)
     @JoinColumn({ name: 'rodadaId' })
     rodadaId: Rodada
+
+    @OneToMany(() => Pitaco, pitaco => pitaco.matchIdSistem, {
+      cascade: ['insert', 'update']
+    })
+    pitacos: Pitaco[]
 }

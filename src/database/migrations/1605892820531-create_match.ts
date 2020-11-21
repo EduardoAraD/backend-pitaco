@@ -18,10 +18,6 @@ export class createMatch1605892820531 implements MigrationInterface {
           type: 'integer'
         },
         {
-          name: 'numRodada',
-          type: 'integer'
-        },
-        {
           name: 'status',
           type: 'varchar'
         },
@@ -30,11 +26,11 @@ export class createMatch1605892820531 implements MigrationInterface {
           type: 'varchar'
         },
         {
-          name: 'timeHour',
+          name: 'hour',
           type: 'varchar'
         },
         {
-          name: 'day',
+          name: 'date',
           type: 'varchar'
         },
         {
