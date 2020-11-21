@@ -10,6 +10,12 @@ export default class Rodada {
     @Column()
     name: string
 
+    @Column()
+    number: number
+
+    @Column()
+    status: string
+
     @ManyToOne(() => Championship, championship => championship.rodadas)
     @JoinColumn({ name: 'championshipId' })
     championshipId: Championship
