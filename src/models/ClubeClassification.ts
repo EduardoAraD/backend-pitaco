@@ -8,7 +8,13 @@ export default class ClubeClassification {
     id: number
 
     @Column()
+    position: number
+
+    @Column()
     name: string
+
+    @Column()
+    linkShield: string
 
     @Column()
     points: number
@@ -29,7 +35,13 @@ export default class ClubeClassification {
     goalsConceded: number
 
     @Column()
-    position: number
+    positionVariation: number
+
+    @Column()
+    utilization: number
+
+    @Column()
+    lastMatchs: string
 
     @ManyToOne(() => Championship, championship => championship.clubes)
     @JoinColumn({ name: 'championshipId' })

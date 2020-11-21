@@ -14,7 +14,15 @@ export class createClubeClassification1605894318241 implements MigrationInterfac
           generationStrategy: 'increment'
         },
         {
+          name: 'position',
+          type: 'integer'
+        },
+        {
           name: 'name',
+          type: 'varchar'
+        },
+        {
+          name: 'linkShield',
           type: 'varchar'
         },
         {
@@ -42,8 +50,16 @@ export class createClubeClassification1605894318241 implements MigrationInterfac
           type: 'integer'
         },
         {
-          name: 'position',
+          name: 'positionVariation',
           type: 'integer'
+        },
+        {
+          name: 'utilization',
+          type: 'integer'
+        },
+        {
+          name: 'lastMatchs',
+          type: 'string'
         },
         {
           name: 'championshipId',
