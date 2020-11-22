@@ -14,7 +14,7 @@ export class createMatch1605892820531 implements MigrationInterface {
           generationStrategy: 'increment'
         },
         {
-          name: 'matchId',
+          name: 'matchIdApi',
           type: 'integer'
         },
         {

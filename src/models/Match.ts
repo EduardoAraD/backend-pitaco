@@ -9,7 +9,7 @@ export default class Match {
     id: number
 
     @Column()
-    matchId: number
+    matchIdApi: number
 
     @Column()
     status: string
@@ -45,7 +45,7 @@ export default class Match {
     @JoinColumn({ name: 'rodadaId' })
     rodadaId: Rodada
 
-    @OneToMany(() => Pitaco, pitaco => pitaco.matchIdSistem, {
+    @OneToMany(() => Pitaco, pitaco => pitaco.matchId, {
       cascade: ['insert', 'update']
     })
     pitacos: Pitaco[]
