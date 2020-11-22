@@ -32,7 +32,7 @@ export class createRodada1605897386707 implements MigrationInterface {
       ],
       foreignKeys: [
         {
-          name: 'ChampionshipClube',
+          name: 'ChampionshipRodada',
           columnNames: ['championshipId'],
           referencedTableName: 'championship',
           referencedColumnNames: ['id'],
