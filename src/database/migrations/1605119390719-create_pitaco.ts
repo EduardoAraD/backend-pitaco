@@ -26,11 +26,11 @@ export class createPitaco1605119390719 implements MigrationInterface {
           type: 'integer'
         },
         {
-          name: 'matchId',
+          name: 'matchIdApi',
           type: 'integer'
         },
         {
-          name: 'matchIdSistem',
+          name: 'matchId',
           type: 'integer'
         }
       ],
@@ -45,7 +45,7 @@ export class createPitaco1605119390719 implements MigrationInterface {
         },
         {
           name: 'PitacoMatch',
-          columnNames: ['matchIdSistem'],
+          columnNames: ['matchId'],
           referencedTableName: 'match',
           referencedColumnNames: ['id'],
           onUpdate: 'CASCADE',

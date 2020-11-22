@@ -10,7 +10,7 @@ import pitacoView from '@views/pitaco_view'
 interface DataRequestCreate {
     email: string,
     pitacos: {
-        matchId: number,
+        matchIdApi: number,
         golsHome: number,
         golsAway: number
     }[]
@@ -18,11 +18,11 @@ interface DataRequestCreate {
 interface DataRequestShowUser {
   email: string,
   matchs: {
-    matchId: number
+    matchIdApi: number
   }[]
 }
 interface DataRequestResultPitaco {
-  matchId: number,
+  matchIdApi: number,
   golsHome: number,
   golsAway: number
 }
@@ -49,8 +49,8 @@ export default {
 
     let i = 0
     for (i = 0; i < data.matchs.length; i++) {
-      const matchId = data.matchs[i].matchId
-      const pitaco = await pitacoRepository.findOne({ matchId, userId: user })
+      const matchIdApi = data.matchs[i].matchIdApi
+      const pitaco = await pitacoRepository.findOne({ matchIdApi, userId: user })
       if (pitaco) {
         pitaco.userId = user
         pitacosOfUser.push(pitaco)
@@ -74,13 +74,13 @@ export default {
     let i = 0
     for (i = 0; i < data.pitacos.length; i++) {
       const dataPitaco = {
-        matchId: data.pitacos[i].matchId,
+        matchIdApi: data.pitacos[i].matchIdApi,
         golsHome: data.pitacos[i].golsHome,
         golsAway: data.pitacos[i].golsAway,
         userId: user
       }
 
-      const pitacoExist = await pitacoRepository.findOne({ matchId: dataPitaco.matchId, userId: user })
+      const pitacoExist = await pitacoRepository.findOne({ matchIdApi: dataPitaco.matchIdApi, userId: user })
       if (!pitacoExist) {
         const pitacoUser = pitacoRepository.create(dataPitaco)
         await pitacoRepository.save(pitacoUser)
@@ -106,7 +106,7 @@ export default {
   async resultPitaco (request: Request, response: Response) {
     const { matchId, golsHome, golsAway } = request.body
     const data = {
-      matchId: parseInt(matchId),
+      matchIdApi: parseInt(matchId),
       golsHome: parseInt(golsHome),
       golsAway: parseInt(golsAway)
     } as DataRequestResultPitaco
@@ -119,7 +119,7 @@ export default {
 
     let i = 0
     for (i = 0; i < usersAll.length; i++) {
-      const pitaco = await pitacoRepository.findOne({ matchId: data.matchId, userId: usersAll[i] })
+      const pitaco = await pitacoRepository.findOne({ matchIdApi: data.matchIdApi, userId: usersAll[i] })
       if (pitaco) {
         let point = 0
         let exactPlacar = 0

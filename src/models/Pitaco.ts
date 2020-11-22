@@ -15,13 +15,13 @@ export default class Pitaco {
     golsAway: number;
 
     @Column()
-    matchId: number;
+    matchIdApi: number;
 
     @ManyToOne(() => Users, user => user.pitacos)
     @JoinColumn({ name: 'userId' })
     userId: Users;
 
     @ManyToOne(() => Match, match => match.pitacos)
-    @JoinColumn({ name: 'matchIdSistem' })
-    matchIdSistem: Match
+    @JoinColumn({ name: 'matchId' })
+    matchId: Match
 }
