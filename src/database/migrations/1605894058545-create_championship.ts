@@ -18,11 +18,15 @@ export class createChampionship1605894058545 implements MigrationInterface {
           type: 'varchar'
         },
         {
-          name: 'status',
+          name: 'startDate',
           type: 'varchar'
         },
         {
-          name: 'currentRodada',
+          name: 'endDate',
+          type: 'varchar'
+        },
+        {
+          name: 'seasonId',
           type: 'integer'
         }
       ]

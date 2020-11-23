@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToMany, JoinColumn, OneToOne } from 'typeorm'
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany, JoinColumn } from 'typeorm'
 
 import ClubeClassification from './ClubeClassification'
 import Rodada from './Rodada'
@@ -12,10 +12,13 @@ export default class Championship {
     name: string
 
     @Column()
-    status: string
+    startDate: string
 
     @Column()
-    currentRodada: number
+    endDate: string
+
+    @Column()
+    seasonId: number
 
     @OneToMany(() => Rodada, rodada => rodada.championshipId, {
       cascade: ['insert', 'update']
@@ -23,9 +26,9 @@ export default class Championship {
     @JoinColumn({ name: 'championshipId' })
     rodadas: Rodada[];
 
-    @OneToOne(() => ClubeClassification, clube => clube.championshipId, {
+    @OneToMany(() => ClubeClassification, clube => clube.championshipId, {
       cascade: ['insert', 'update']
     })
     @JoinColumn({ name: 'championshipId' })
-    clubes: ClubeClassification
+    standings: ClubeClassification[]
 }
