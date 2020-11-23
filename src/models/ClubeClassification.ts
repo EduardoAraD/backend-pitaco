@@ -1,6 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm'
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToOne } from 'typeorm'
 
 import Championship from './Championship'
+import Clube from './Clube'
 
 @Entity('clubeClassification')
 export default class ClubeClassification {
@@ -9,12 +10,6 @@ export default class ClubeClassification {
 
     @Column()
     position: number
-
-    @Column()
-    name: string
-
-    @Column()
-    linkShield: string
 
     @Column()
     points: number
@@ -40,10 +35,13 @@ export default class ClubeClassification {
     @Column()
     utilization: number
 
-    @Column()
-    lastMatchs: string
-
-    @ManyToOne(() => Championship, championship => championship.clubes)
+    @ManyToOne(() => Championship, championship => championship.standings)
     @JoinColumn({ name: 'championshipId' })
     championshipId: Championship
+
+    @OneToOne(() => Clube, clube => clube.class, {
+      cascade: ['insert', 'update']
+    })
+    @JoinColumn({ name: 'clubeId' })
+    clube: Clube
 }

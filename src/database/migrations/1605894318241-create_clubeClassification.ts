@@ -18,14 +18,6 @@ export class createClubeClassification1605894318241 implements MigrationInterfac
           type: 'integer'
         },
         {
-          name: 'name',
-          type: 'varchar'
-        },
-        {
-          name: 'linkShield',
-          type: 'varchar'
-        },
-        {
           name: 'points',
           type: 'integer'
         },
@@ -38,7 +30,7 @@ export class createClubeClassification1605894318241 implements MigrationInterfac
           type: 'integer'
         },
         {
-          name: 'macths',
+          name: 'matchs',
           type: 'integer'
         },
         {
@@ -58,19 +50,27 @@ export class createClubeClassification1605894318241 implements MigrationInterfac
           type: 'integer'
         },
         {
-          name: 'lastMatchs',
-          type: 'string'
+          name: 'championshipId',
+          type: 'integer'
         },
         {
-          name: 'championshipId',
+          name: 'clubeId',
           type: 'integer'
         }
       ],
       foreignKeys: [
         {
-          name: 'ChampionshipClube',
+          name: 'ChampionshipClubeClass',
           columnNames: ['championshipId'],
           referencedTableName: 'championship',
+          referencedColumnNames: ['id'],
+          onUpdate: 'CASCADE',
+          onDelete: 'CASCADE'
+        },
+        {
+          name: 'ClubeClass',
+          columnNames: ['clubeId'],
+          referencedTableName: 'clube',
           referencedColumnNames: ['id'],
           onUpdate: 'CASCADE',
           onDelete: 'CASCADE'
