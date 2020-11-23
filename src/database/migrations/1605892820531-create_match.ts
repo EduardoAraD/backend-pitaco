@@ -22,7 +22,7 @@ export class createMatch1605892820531 implements MigrationInterface {
           type: 'varchar'
         },
         {
-          name: 'statium',
+          name: 'stadium',
           type: 'varchar'
         },
         {
@@ -31,22 +31,6 @@ export class createMatch1605892820531 implements MigrationInterface {
         },
         {
           name: 'date',
-          type: 'varchar'
-        },
-        {
-          name: 'clubeHome',
-          type: 'varchar'
-        },
-        {
-          name: 'clubeAway',
-          type: 'varchar'
-        },
-        {
-          name: 'linkClubeHome',
-          type: 'varchar'
-        },
-        {
-          name: 'linkClubeAway',
           type: 'varchar'
         },
         {
@@ -60,6 +44,14 @@ export class createMatch1605892820531 implements MigrationInterface {
         {
           name: 'rodadaId',
           type: 'integer'
+        },
+        {
+          name: 'clubeHomeId',
+          type: 'integer'
+        },
+        {
+          name: 'clubeAwayId',
+          type: 'integer'
         }
       ],
       foreignKeys: [
@@ -67,6 +59,22 @@ export class createMatch1605892820531 implements MigrationInterface {
           name: 'RodadaMatch',
           columnNames: ['rodadaId'],
           referencedTableName: 'rodada',
+          referencedColumnNames: ['id'],
+          onUpdate: 'CASCADE',
+          onDelete: 'CASCADE'
+        },
+        {
+          name: 'ClubeHome',
+          columnNames: ['clubeHomeId'],
+          referencedTableName: 'clube',
+          referencedColumnNames: ['id'],
+          onUpdate: 'CASCADE',
+          onDelete: 'CASCADE'
+        },
+        {
+          name: 'ClubeAway',
+          columnNames: ['clubeAwayId'],
+          referencedTableName: 'clube',
           referencedColumnNames: ['id'],
           onUpdate: 'CASCADE',
           onDelete: 'CASCADE'

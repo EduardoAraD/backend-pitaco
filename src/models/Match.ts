@@ -1,4 +1,5 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm'
+import Clube from './Clube'
 import Pitaco from './Pitaco'
 
 import Rodada from './Rodada'
@@ -24,18 +25,6 @@ export default class Match {
     date: string
 
     @Column()
-    clubeHome: string
-
-    @Column()
-    clubeAway: string
-
-    @Column()
-    linkClubeHome: string
-
-    @Column()
-    linkClubeAway: string
-
-    @Column()
     golsHome: number
 
     @Column()
@@ -44,6 +33,14 @@ export default class Match {
     @ManyToOne(() => Rodada, rodada => rodada.matchs)
     @JoinColumn({ name: 'rodadaId' })
     rodadaId: Rodada
+
+    @ManyToOne(() => Clube, clube => clube.matchsHome)
+    @JoinColumn({ name: 'clubeHomeId' })
+    clubeHome: Clube
+
+    @ManyToOne(() => Clube, clube => clube.matchsAway)
+    @JoinColumn({ name: 'clubeAwayId' })
+    clubeAway: Clube
 
     @OneToMany(() => Pitaco, pitaco => pitaco.matchId, {
       cascade: ['insert', 'update']
