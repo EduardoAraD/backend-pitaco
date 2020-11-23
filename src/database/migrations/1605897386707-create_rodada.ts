@@ -22,10 +22,6 @@ export class createRodada1605897386707 implements MigrationInterface {
           type: 'integer'
         },
         {
-          name: 'status',
-          type: 'varchar'
-        },
-        {
           name: 'championshipId',
           type: 'integer'
         }
