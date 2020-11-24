@@ -3,13 +3,22 @@ import { Request, Response } from 'express'
 
 import Championship from '@models/Championship'
 import ClubeClassification from '@models/ClubeClassification'
+import Match from '@models/Match'
+
+import standingsView from '@views/standings_view'
+import rodadaView from '@views/rodada_view'
+
+interface DataRequestParams {
+  id: number
+}
 
 export default {
   async tabela (request: Request, response: Response) {
     const { id } = request.params
+    const data = { id: parseInt(id) } as DataRequestParams
 
     const ChampionshipRepository = getRepository(Championship)
-    const championshipDB = await ChampionshipRepository.findOne({ id: parseInt(id) })
+    const championshipDB = await ChampionshipRepository.findOne({ id: data.id })
     if (!championshipDB) {
       return response.status(400).json({ error: 'Championship not exist' })
     }
@@ -32,10 +41,40 @@ export default {
         return -1
       })
 
-    return response.json({ standings })
+    return response.json(standingsView.renderMany(standings))
   },
-fazer
-  async rodadas (request: Request, response: Response) {},
 
-  async matchsRodada (request: Request, response: Response) {}
+  async rodadas (request: Request, response: Response) {
+    const { id } = request.params
+    const data = { id: parseInt(id) } as DataRequestParams
+
+    const ChampionshipRepository = getRepository(Championship)
+    const championshipDB = await ChampionshipRepository.findOne({ id: data.id }, { relations: ['rodadas'] })
+    if (!championshipDB) return response.status(400).json({ error: 'Championship not found' })
+
+    const MatchRepository = getRepository(Match)
+    const matchs = await MatchRepository.find({ relations: ['clubeHome', 'clubeAway', 'rodadaId'] })
+    const rodadas = championshipDB.rodadas.map(rodada => {
+      rodada.matchs = matchs.filter(match => match.rodadaId.id === rodada.id)
+      return rodada
+    })
+
+    return response.json(rodadaView.renderMany(rodadas))
+  },
+
+  async matchsRodada (request: Request, response: Response) {
+    const { id } = request.params
+    const data = { id: parseInt(id) } as DataRequestParams
+
+    const MatchRepository = getRepository(Match)
+    const matchsDB = await MatchRepository.find({ relations: ['clubeHome', 'clubeAway', 'rodadaId'] })
+    const matchs = matchsDB.filter(match => match.rodadaId.id === data.id)
+
+    const rodada = matchs[0].rodadaId
+    rodada.matchs = matchs
+
+    return response.json(rodadaView.renderItem(rodada))
+  },
+
+  async matchRodadaAtual (request: Request, response: Response) {}
 }
