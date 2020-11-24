@@ -17,6 +17,12 @@ export default class Pitaco {
     @Column()
     matchIdApi: number;
 
+    @Column()
+    point: number;
+
+    @Column()
+    exactScore: number;
+
     @ManyToOne(() => Users, user => user.pitacos)
     @JoinColumn({ name: 'userId' })
     userId: Users;

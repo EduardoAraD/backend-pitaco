@@ -26,6 +26,14 @@ export class createPitaco1605119390719 implements MigrationInterface {
           type: 'integer'
         },
         {
+          name: 'point',
+          type: 'integer'
+        },
+        {
+          name: 'exactScore',
+          type: 'integer'
+        },
+        {
           name: 'matchIdApi',
           type: 'integer'
         },
