@@ -3,6 +3,8 @@ import { Router } from 'express'
 import UsersController from '@controllers/UsersController'
 import LeaguesController from '@controllers/LeaguesController'
 import PitacoController from '@controllers/PitacoController'
+import ChampionshipController from '@controllers/ChampionshipController'
+import { Atualization } from '@controllers/Atualization'
 
 const routes = Router()
 
@@ -19,7 +21,12 @@ routes.delete('/leagues/:id', LeaguesController.delete)
 
 routes.get('/pitacos', PitacoController.index)
 routes.post('/pitacos', PitacoController.createUpdate)
-routes.post('/pitacos/user', PitacoController.showUser)
-routes.post('/pitaco/result', PitacoController.resultPitaco)
+routes.post('/pitacos-rodada/user', PitacoController.showUserRodada)
+
+routes.get('/championship/:id/tabela/', ChampionshipController.tabela)
+routes.get('/championship/:id/rodadas', ChampionshipController.rodadas)
+routes.get('/championship/:id/rodadas/:rodada', ChampionshipController.matchsRodada)
+
+routes.get('/atualization', Atualization)
 
 export default routes

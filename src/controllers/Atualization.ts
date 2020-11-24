@@ -228,7 +228,7 @@ async function Atualization (request: Request, response: Response) {
         if (!equalsMatch(matchDB, dataMatch)) {
           if (dataMatch.finishPitaco === 1 && dataMatch.finishPitaco !== matchDB.finishPitaco) {
             console.log('alterando Pontos do Pitaco')
-            await PitacoController.resultPitaco(matchDB.matchIdApi, dataMatch.golsHome, dataMatch.golsAway)
+            await PitacoController.resultPitaco(matchDB, dataMatch.golsHome, dataMatch.golsAway)
           }
           await MatchRepository.update(matchDB.id, {
             status: dataMatch.status,
