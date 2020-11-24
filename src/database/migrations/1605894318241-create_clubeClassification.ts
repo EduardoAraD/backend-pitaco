@@ -14,10 +14,6 @@ export class createClubeClassification1605894318241 implements MigrationInterfac
           generationStrategy: 'increment'
         },
         {
-          name: 'position',
-          type: 'integer'
-        },
-        {
           name: 'points',
           type: 'integer'
         },
@@ -39,10 +35,6 @@ export class createClubeClassification1605894318241 implements MigrationInterfac
         },
         {
           name: 'goalsConceded',
-          type: 'integer'
-        },
-        {
-          name: 'positionVariation',
           type: 'integer'
         },
         {

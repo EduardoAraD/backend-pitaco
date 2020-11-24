@@ -9,9 +9,6 @@ export default class ClubeClassification {
     id: number
 
     @Column()
-    position: number
-
-    @Column()
     points: number
 
     @Column()
@@ -28,9 +25,6 @@ export default class ClubeClassification {
 
     @Column()
     goalsConceded: number
-
-    @Column()
-    positionVariation: number
 
     @Column()
     utilization: number
