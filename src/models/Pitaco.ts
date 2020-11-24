@@ -15,9 +15,6 @@ export default class Pitaco {
     golsAway: number;
 
     @Column()
-    matchIdApi: number;
-
-    @Column()
     point: number;
 
     @Column()

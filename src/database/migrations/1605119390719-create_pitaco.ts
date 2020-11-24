@@ -22,10 +22,6 @@ export class createPitaco1605119390719 implements MigrationInterface {
           type: 'integer'
         },
         {
-          name: 'userId',
-          type: 'integer'
-        },
-        {
           name: 'point',
           type: 'integer'
         },
@@ -34,7 +30,7 @@ export class createPitaco1605119390719 implements MigrationInterface {
           type: 'integer'
         },
         {
-          name: 'matchIdApi',
+          name: 'userId',
           type: 'integer'
         },
         {
