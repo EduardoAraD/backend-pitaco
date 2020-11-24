@@ -4,8 +4,10 @@ import { Request, Response } from 'express'
 import Pitaco from '@models/Pitaco'
 import Users from '@models/Users'
 import Points from '@models/Points'
+import Match from '@models/Match'
 
 import pitacoView from '@views/pitaco_view'
+import matchView from '@views/match_view'
 
 interface DataRequestCreate {
     email: string,
@@ -17,134 +19,142 @@ interface DataRequestCreate {
 }
 interface DataRequestShowUser {
   email: string,
-  matchs: {
-    matchIdApi: number
-  }[]
-}
-interface DataRequestResultPitaco {
-  matchIdApi: number,
-  golsHome: number,
-  golsAway: number
+  rodadaId: number
 }
 
 export default {
   async index (request: Request, response: Response) {
-    const pitacoRepository = getRepository(Pitaco)
+    const PitacoRepository = getRepository(Pitaco)
 
-    const pitacos = await pitacoRepository.find({ relations: ['userId'] })
+    const pitacosDB = await PitacoRepository.find({ relations: ['userId', 'matchId'] })
+
+    const MatchRepository = getRepository(Match)
+    const matchs = await MatchRepository.find({ relations: ['clubeHome', 'clubeAway'] })
+    const pitacos = pitacosDB.map(pitaco => {
+      pitaco.matchId = matchs.find(match => match.id === pitaco.matchId.id)
+
+      return pitaco
+    })
 
     return response.json(pitacoView.renderMany(pitacos))
   },
 
-  async showUser (request: Request, response: Response) {
-    const { email, matchs } = request.body
-    const data = { email, matchs } as DataRequestShowUser
+  async showUserRodada (request: Request, response: Response) { // - confuso
+    const { email, rodadaId } = request.body
+    const data = { email, rodadaId } as DataRequestShowUser
 
-    const usersRepository = getRepository(Users)
-    const user = await usersRepository.findOne({ email: data.email })
+    const UsersRepository = getRepository(Users)
+    const user = await UsersRepository.findOne({ email: data.email })
     if (!user) { return response.status(400).send({ error: 'User not found' }) }
 
-    const pitacoRepository = getRepository(Pitaco)
-    const pitacosOfUser: Pitaco[] = []
+    const MatchRepository = getRepository(Match)
+    const matchsDB = await MatchRepository.find({ relations: ['clubeHome', 'clubeAway', 'rodadaId'] })
+    const matchs = matchsDB.filter(match => match.rodadaId.id === data.rodadaId)
 
-    let i = 0
-    for (i = 0; i < data.matchs.length; i++) {
-      const matchIdApi = data.matchs[i].matchIdApi
-      const pitaco = await pitacoRepository.findOne({ matchIdApi, userId: user })
+    const PitacoRepository = getRepository(Pitaco)
+    const pitacosOfUser: Pitaco[] = []
+    for (let i = 0; i < matchs.length; i++) {
+      const pitaco = await PitacoRepository.findOne({ matchId: matchs[i], userId: user })
       if (pitaco) {
-        pitaco.userId = user
+        pitaco.matchId = matchs[i]
         pitacosOfUser.push(pitaco)
       }
     }
 
-    return response.json(pitacoView.renderMany(pitacosOfUser))
+    return response.json({
+      pitacos: pitacoView.renderMany(pitacosOfUser),
+      matchs: matchView.renderMany(matchs)
+    })
   },
 
   async createUpdate (request: Request, response: Response) {
     const { email, pitacos } = request.body
     const data = { email, pitacos } as DataRequestCreate
 
-    const usersRepository = getRepository(Users)
-    const user = await usersRepository.findOne({ email: data.email })
+    const UsersRepository = getRepository(Users)
+    const user = await UsersRepository.findOne({ email: data.email })
     if (!user) { return response.status(400).send({ error: 'User not found' }) }
 
-    const pitacoRepository = getRepository(Pitaco)
+    const PitacoRepository = getRepository(Pitaco)
+    const MatchRepository = getRepository(Match)
 
     const pitacosOfUser: Pitaco[] = []
     let i = 0
     for (i = 0; i < data.pitacos.length; i++) {
+      const macthDB = await MatchRepository.findOne({ matchIdApi: data.pitacos[i].matchIdApi })
       const dataPitaco = {
-        matchIdApi: data.pitacos[i].matchIdApi,
         golsHome: data.pitacos[i].golsHome,
         golsAway: data.pitacos[i].golsAway,
-        userId: user
-      }
+        point: 0,
+        exactScore: 0,
+        userId: user,
+        matchId: macthDB
+      } as Pitaco
 
-      const pitacoExist = await pitacoRepository.findOne({ matchIdApi: dataPitaco.matchIdApi, userId: user })
-      if (!pitacoExist) {
-        const pitacoUser = pitacoRepository.create(dataPitaco)
-        await pitacoRepository.save(pitacoUser)
+      const pitacoDB = await PitacoRepository.findOne({ matchId: dataPitaco.matchId, userId: user })
+      if (!pitacoDB) {
+        const pitacoUser = PitacoRepository.create(dataPitaco)
+        await PitacoRepository.save(pitacoUser)
 
         pitacosOfUser.push(pitacoUser)
       } else {
-        await pitacoRepository.update(pitacoExist.id, {
+        await PitacoRepository.update(pitacoDB.id, {
           golsHome: dataPitaco.golsHome,
           golsAway: dataPitaco.golsAway
         })
 
-        pitacoExist.golsHome = dataPitaco.golsHome
-        pitacoExist.golsAway = dataPitaco.golsAway
-        pitacoExist.userId = user
+        pitacoDB.golsHome = dataPitaco.golsHome
+        pitacoDB.golsAway = dataPitaco.golsAway
+        pitacoDB.userId = user
+        pitacoDB.matchId = macthDB
 
-        pitacosOfUser.push(pitacoExist)
+        pitacosOfUser.push(pitacoDB)
       }
     }
 
     return response.json(pitacoView.renderMany(pitacosOfUser))
   },
 
-  async resultPitaco (request: Request, response: Response) {
-    const { matchId, golsHome, golsAway } = request.body
-    const data = {
-      matchIdApi: parseInt(matchId),
-      golsHome: parseInt(golsHome),
-      golsAway: parseInt(golsAway)
-    } as DataRequestResultPitaco
+  async resultPitaco (match: Match, golsHome: number, golsAway: number) {
+    const UsersRepository = getRepository(Users)
+    const PitacoRepository = getRepository(Pitaco)
+    const PointsRepository = getRepository(Points)
 
-    const usersRepository = getRepository(Users)
-    const pitacoRepository = getRepository(Pitaco)
-    const pointsRepository = getRepository(Points)
-
-    const usersAll = await usersRepository.find()
+    const usersAll = await UsersRepository.find()
 
     let i = 0
     for (i = 0; i < usersAll.length; i++) {
-      const pitaco = await pitacoRepository.findOne({ matchIdApi: data.matchIdApi, userId: usersAll[i] })
+      const pitaco = await PitacoRepository.findOne({ matchId: match, userId: usersAll[i] })
       if (pitaco) {
-        let point = 0
-        let exactPlacar = 0
-        if (pitaco.golsHome === data.golsHome && pitaco.golsAway === data.golsAway) {
-          point = 10
-          exactPlacar = 1
-        } else {
-          if ((pitaco.golsHome === pitaco.golsAway && data.golsHome === data.golsAway) ||
-            (pitaco.golsHome < pitaco.golsAway && data.golsHome < data.golsAway) ||
-            (pitaco.golsHome > pitaco.golsAway && data.golsHome > data.golsAway)) {
-            point = 5
-          }
-        }
-        const pointsOfUser = await pointsRepository.find({ userId: usersAll[i] })
+        const point = definePoints(golsHome, golsAway, pitaco)
+        const exactScore = point === 10 ? 1 : 0
+
+        await PitacoRepository.update(pitaco.id, { exactScore, point })
+        const pointsOfUser = await PointsRepository.find({ userId: usersAll[i] })
 
         let j = 0
         for (j = 0; j < pointsOfUser.length; j++) {
-          await pointsRepository.update(pointsOfUser[j].id, {
+          await PointsRepository.update(pointsOfUser[j].id, {
             points: pointsOfUser[j].points + point,
-            exactScore: pointsOfUser[j].exactScore + exactPlacar
+            exactScore: pointsOfUser[j].exactScore + exactScore
           })
         }
       }
     }
+  }
+}
 
-    return response.send()
+function definePoints (golsHome: number, golsAway, pitaco: Pitaco): number {
+  if (pitaco.golsHome === golsHome && pitaco.golsAway === golsAway) {
+    return 10
+  } else {
+    let point = 0
+    if ((pitaco.golsHome === pitaco.golsAway && golsHome === golsAway) ||
+      (pitaco.golsHome < pitaco.golsAway && golsHome < golsAway) ||
+      (pitaco.golsHome > pitaco.golsAway && golsHome > golsAway)) {
+      point += 5
+    }
+    if (pitaco.golsHome === golsHome || pitaco.golsAway === golsAway) { point += 2 }
+    return point
   }
 }
