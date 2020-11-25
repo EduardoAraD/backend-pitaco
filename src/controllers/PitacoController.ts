@@ -162,10 +162,7 @@ function definePoints (golsHome: number, golsAway, pitaco: Pitaco): number {
 }
 
 function hourLimitPitacoDate (date: string, hour: string): boolean {
-  const year = date.slice(-4)
-  const mouht = date.slice(3, 5)
-  const day = date.slice(0, 2)
-  const dateMatch = new Date(`${year}-${mouht}-${day} ${hour}`)
+  const dateMatch = new Date(`${date} ${hour}`)
   dateMatch.setHours(dateMatch.getHours() - 2)
   const currentDate = new Date()
   if (dateMatch > currentDate) { return true }

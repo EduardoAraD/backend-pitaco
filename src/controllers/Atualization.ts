@@ -397,7 +397,6 @@ function filterMatchRodada (matchs: DataRodadaMatch[]): Match[] {
   let i = 0
   while (matchsFilter.length < 10) {
     if (i >= matchs.length) {
-      console.log('problema de 10')
       return matchsFilter
     }
     const itemInit = matchs[i].match
