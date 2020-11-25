@@ -1,5 +1,6 @@
 import express from 'express'
 import routesAuth from './routes/auth'
+import './services/timeFunctionAtualization'
 
 import './database/connection'
 
