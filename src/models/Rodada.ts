@@ -13,6 +13,12 @@ export default class Rodada {
     @Column()
     number: number
 
+    @Column()
+    prevRodada: number
+
+    @Column()
+    proxRodada: number
+
     @ManyToOne(() => Championship, championship => championship.rodadas)
     @JoinColumn({ name: 'championshipId' })
     championshipId: Championship
