@@ -97,5 +97,31 @@ export default {
     rodada.matchs = matchsDB.filter(match => match.rodadaId.id === rodada.id)
 
     return response.json(rodadaView.renderItem(rodada))
+  },
+
+  async currentChampionship () {
+    const ChampionshipRepository = getRepository(Championship)
+    const championshipsDB = await ChampionshipRepository.find()
+
+    const currentDate = new Date()
+    let id = 0
+    let menor = currentDate.getTime()
+    for (let i = 0; i < championshipsDB.length; i++) {
+      const dateStartChampionship = new Date(`${championshipsDB[i].startDate} 12:00:00`)
+      const dateEndChampionship = new Date(`${championshipsDB[i].endDate} 12:00:00`)
+      if (dateStartChampionship <= currentDate && dateEndChampionship >= currentDate) {
+        return championshipsDB[i].id
+      } else {
+        const diffTimeStartCurrent = Math.abs(currentDate.getTime() - dateStartChampionship.getTime())
+        const diffTimeEndCurrent = Math.abs(currentDate.getTime() - dateEndChampionship.getTime())
+        const menorTimeChampionship = diffTimeStartCurrent <= diffTimeEndCurrent ? diffTimeStartCurrent : diffTimeEndCurrent
+
+        if (menor > menorTimeChampionship) {
+          menor = menorTimeChampionship
+          id = championshipsDB[i].id
+        }
+      }
+    }
+    return id
   }
 }

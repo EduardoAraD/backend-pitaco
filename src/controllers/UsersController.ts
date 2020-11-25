@@ -10,6 +10,7 @@ import Users from '@models/Users'
 import Leagues from '@models/Leagues'
 
 import UsersView from '@views/users_view'
+import ChampionshipController from './ChampionshipController'
 
 const emailRegex = /\S+@\S+\.\S+/
 
@@ -111,7 +112,9 @@ export default {
       expiresIn: '30 day'
     })
 
-    return response.json(UsersView.render(token, user))
+    const idChampionship = await ChampionshipController.currentChampionship()
+
+    return response.json(UsersView.render(token, user, idChampionship))
   },
 
   async signIn (request: Request, response: Response) {
@@ -131,7 +134,9 @@ export default {
         expiresIn: '1 day'
       })
 
-      return response.json(UsersView.render(token, user))
+      const idChampionship = await ChampionshipController.currentChampionship()
+
+      return response.json(UsersView.render(token, user, idChampionship))
     } else {
       return response.status(400).send({ message: 'Usuário/Senha inválidos' })
     }
