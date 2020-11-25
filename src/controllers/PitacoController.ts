@@ -79,36 +79,38 @@ export default {
     const MatchRepository = getRepository(Match)
 
     const pitacosOfUser: Pitaco[] = []
-    let i = 0
-    for (i = 0; i < data.pitacos.length; i++) {
+    for (let i = 0; i < data.pitacos.length; i++) {
       const macthDB = await MatchRepository.findOne({ matchIdApi: data.pitacos[i].matchIdApi })
-      const dataPitaco = {
-        golsHome: data.pitacos[i].golsHome,
-        golsAway: data.pitacos[i].golsAway,
-        point: 0,
-        exactScore: 0,
-        userId: user,
-        matchId: macthDB
-      } as Pitaco
 
-      const pitacoDB = await PitacoRepository.findOne({ matchId: dataPitaco.matchId, userId: user })
-      if (!pitacoDB) {
-        const pitacoUser = PitacoRepository.create(dataPitaco)
-        await PitacoRepository.save(pitacoUser)
+      if (hourLimitPitacoDate(macthDB.date, macthDB.hour)) {
+        const dataPitaco = {
+          golsHome: data.pitacos[i].golsHome,
+          golsAway: data.pitacos[i].golsAway,
+          point: 0,
+          exactScore: 0,
+          userId: user,
+          matchId: macthDB
+        } as Pitaco
 
-        pitacosOfUser.push(pitacoUser)
-      } else {
-        await PitacoRepository.update(pitacoDB.id, {
-          golsHome: dataPitaco.golsHome,
-          golsAway: dataPitaco.golsAway
-        })
+        const pitacoDB = await PitacoRepository.findOne({ matchId: dataPitaco.matchId, userId: user })
+        if (!pitacoDB) {
+          const pitacoUser = PitacoRepository.create(dataPitaco)
+          await PitacoRepository.save(pitacoUser)
 
-        pitacoDB.golsHome = dataPitaco.golsHome
-        pitacoDB.golsAway = dataPitaco.golsAway
-        pitacoDB.userId = user
-        pitacoDB.matchId = macthDB
+          pitacosOfUser.push(pitacoUser)
+        } else {
+          await PitacoRepository.update(pitacoDB.id, {
+            golsHome: dataPitaco.golsHome,
+            golsAway: dataPitaco.golsAway
+          })
 
-        pitacosOfUser.push(pitacoDB)
+          pitacoDB.golsHome = dataPitaco.golsHome
+          pitacoDB.golsAway = dataPitaco.golsAway
+          pitacoDB.userId = user
+          pitacoDB.matchId = macthDB
+
+          pitacosOfUser.push(pitacoDB)
+        }
       }
     }
 
@@ -157,4 +159,15 @@ function definePoints (golsHome: number, golsAway, pitaco: Pitaco): number {
     if (pitaco.golsHome === golsHome || pitaco.golsAway === golsAway) { point += 2 }
     return point
   }
+}
+
+function hourLimitPitacoDate (date: string, hour: string): boolean {
+  const year = date.slice(-4)
+  const mouht = date.slice(3, 5)
+  const day = date.slice(0, 2)
+  const dateMatch = new Date(`${year}-${mouht}-${day} ${hour}`)
+  dateMatch.setHours(dateMatch.getHours() - 2)
+  const currentDate = new Date()
+  if (dateMatch > currentDate) { return true }
+  return false
 }
