@@ -197,9 +197,8 @@ async function Atualization (request: Request, response: Response) {
       return await initAll(request, response, dataResultChampionship)
     }
     const data = new Date()
-    if (data.getHours() === 2 && data.getHours() <= 30) {
-      await atualizationMatchChampionship(championshipDB)
-      return response.send()
+    if (data.getHours() === 22 && data.getMinutes() >= 30) {
+      return await atualizationMatchChampionship(request, response, championshipDB)
     }
 
     const matchsLive = await fetchData('/soccer/matches',
@@ -215,7 +214,6 @@ async function Atualization (request: Request, response: Response) {
     let updateStandings = false
 
     for (let i = 0; i < matchsLive.length; i++) {
-      console.log(`passou pelo i com valor: ${i}`)
       const itemResultMatch = matchsLive[i]
       const clubeHomeDB = await ClubeRepository.findOne({ clubeIdApi: parseInt(itemResultMatch.home_team.team_id) })
       const clubeAwayDB = await ClubeRepository.findOne({ clubeIdApi: parseInt(itemResultMatch.away_team.team_id) })
@@ -261,7 +259,6 @@ async function Atualization (request: Request, response: Response) {
           })
           updateStandings = true
           if (dataMatch.finishPitaco === 1 && dataMatch.finishPitaco !== matchDB.finishPitaco) {
-            console.log('alterando Pontos do Pitaco')
             await PitacoController.resultPitaco(matchDB, dataMatch.golsHome, dataMatch.golsAway)
           }
         }
@@ -269,7 +266,6 @@ async function Atualization (request: Request, response: Response) {
     }
 
     if (updateStandings) {
-      console.log('passou aqui tbm em standings')
       const StandingsRepository = getRepository(ClubeClassification)
       const standingsDB = await StandingsRepository.find({ relations: ['clube', 'championshipId'] })
       const standingsChamspionshipDB = standingsDB.filter(item => item.championshipId.id === championshipDB.id)
@@ -280,7 +276,6 @@ async function Atualization (request: Request, response: Response) {
       const standing = resultStandings.standings
 
       for (let j = 0; j < standing.length; j++) {
-        console.log(`entrou no for com j valendo ${j}`)
         const utilization = (parseInt(standing[j].overall.won) * 3 + parseInt(standing[j].overall.draw)) /
           (parseInt(standing[j].overall.games_played) * 3)
         const clubeDB = await ClubeRepository.findOne({ clubeIdApi: parseInt(standing[j].team_id) })
@@ -318,7 +313,7 @@ async function Atualization (request: Request, response: Response) {
   }
 }
 
-async function atualizationMatchChampionship (championship: Championship) {
+async function atualizationMatchChampionship (request: Request, response: Response, championship: Championship) {
   const currentDate = new Date()
   let currentRodada = 0
   let menorDiffTime = currentDate.getTime()
@@ -357,7 +352,7 @@ async function atualizationMatchChampionship (championship: Championship) {
     } as Match
     const rodadaMatch = parseInt(itemResultMatch.round.name)
 
-    const matchFilter = matchsDB.find(match => (match.rodadaId.id === rodadaMatch &&
+    const matchFilter = matchsDB.find(match => (match.rodadaId.number === rodadaMatch &&
       match.clubeHome.id === dataMatch.clubeHome.id &&
       match.clubeAway.id === dataMatch.clubeAway.id))
 
@@ -399,6 +394,8 @@ async function atualizationMatchChampionship (championship: Championship) {
       currentRodada
     })
   }
+
+  return response.send()
 }
 
 function filterMatchRodada (matchs: DataRodadaMatch[]): Match[] {
