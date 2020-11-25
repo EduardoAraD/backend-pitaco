@@ -9,7 +9,8 @@ import standingsView from '@views/standings_view'
 import rodadaView from '@views/rodada_view'
 
 interface DataRequestParams {
-  id: number
+  id: number,
+  rodadaId?: number
 }
 
 export default {
@@ -63,18 +64,38 @@ export default {
   },
 
   async matchsRodada (request: Request, response: Response) {
-    const { id } = request.params
-    const data = { id: parseInt(id) } as DataRequestParams
+    const { id, numRodada } = request.params
+    const data = { id: parseInt(id), rodada: parseInt(numRodada) } as DataRequestParams
+
+    const ChampionshipRepository = getRepository(Championship)
+    const championshipDB = await ChampionshipRepository.findOne({ id: data.id }, { relations: ['rodadas'] })
+    if (!championshipDB) return response.status(400).json({ error: 'Championship not found' })
+
+    const rodada = championshipDB.rodadas.find(item => item.number === data.rodadaId)
+    if (!rodada) return response.status(400).json({ error: 'Rodada not found' })
 
     const MatchRepository = getRepository(Match)
     const matchsDB = await MatchRepository.find({ relations: ['clubeHome', 'clubeAway', 'rodadaId'] })
-    const matchs = matchsDB.filter(match => match.rodadaId.id === data.id)
-
-    const rodada = matchs[0].rodadaId
-    rodada.matchs = matchs
+    rodada.matchs = matchsDB.filter(match => match.rodadaId.id === rodada.id)
 
     return response.json(rodadaView.renderItem(rodada))
   },
 
-  async matchRodadaAtual (request: Request, response: Response) {}
+  async currentRodada (request: Request, response: Response) {
+    const { id } = request.params
+    const data = { id: parseInt(id) } as DataRequestParams
+
+    const ChampionshipRepository = getRepository(Championship)
+    const championshipDB = await ChampionshipRepository.findOne({ id: data.id }, { relations: ['rodadas'] })
+    if (!championshipDB) return response.status(400).json({ error: 'Championship not found' })
+
+    const rodada = championshipDB.rodadas.find(item => item.number === championshipDB.currentRodada)
+    if (!rodada) return response.status(400).json({ error: 'Rodada not found' })
+
+    const MatchRepository = getRepository(Match)
+    const matchsDB = await MatchRepository.find({ relations: ['clubeHome', 'clubeAway', 'rodadaId'] })
+    rodada.matchs = matchsDB.filter(match => match.rodadaId.id === rodada.id)
+
+    return response.json(rodadaView.renderItem(rodada))
+  }
 }

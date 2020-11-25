@@ -25,7 +25,8 @@ routes.post('/pitacos-rodada/user', PitacoController.showUserRodada)
 
 routes.get('/championship/:id/tabela/', ChampionshipController.tabela)
 routes.get('/championship/:id/rodadas', ChampionshipController.rodadas)
-routes.get('/championship/:id/rodadas/:rodada', ChampionshipController.matchsRodada)
+routes.get('/championship/:id/rodadas/:numRodada', ChampionshipController.matchsRodada)
+routes.get('/championship/:id/currentRodada', ChampionshipController.currentRodada)
 
 routes.get('/atualization', Atualization)
 
