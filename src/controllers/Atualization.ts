@@ -1,5 +1,4 @@
 import { getRepository } from 'typeorm'
-import { Request, Response } from 'express'
 
 import api from '../services/api'
 
@@ -27,7 +26,7 @@ const fetchData = async (url: string, params?: string) => {
   return result.data.data
 }
 
-async function initAll (request: Request, response: Response, paramsChampionship: DataRequestChampionship) {
+async function initAll (paramsChampionship: DataRequestChampionship) {
   try {
     const resultMyLeagues = await fetchData('/soccer/leagues', 'subscribed=true')
     const myLeagueFilter = resultMyLeagues.find(item => item.league_id === 693)
@@ -46,8 +45,9 @@ async function initAll (request: Request, response: Response, paramsChampionship
     const resultClubes = await fetchData('/soccer/teams', `country_id=${myLeagueFilter.country_id}`)
 
     for (let i = 0; i < resultClubes.length; i++) {
+      const name = resultClubes[i].slice(-3).slice(0, 1) === ' ' ? resultClubes[i].name.slice(0, -3) : resultClubes[i]
       const dataClube = {
-        name: resultClubes[i].name.slice(0, -3),
+        name,
         shortCode: resultClubes[i].short_code,
         clubeIdApi: parseInt(resultClubes[i].team_id),
         logo: resultClubes[i].logo
@@ -170,17 +170,18 @@ async function initAll (request: Request, response: Response, paramsChampionship
 
     const ChampionshipRepository = getRepository(Championship)
     const championshipCreate = ChampionshipRepository.create(dataChampionship)
-    const championshipSave = await ChampionshipRepository.save(championshipCreate)
-
-    return response.json(championshipSave)
+    await ChampionshipRepository.save(championshipCreate)
   } catch (err) {
     console.log(err)
-    return response.status(400).json({ error: 'Error not found, try again' })
   }
 }
 
-async function Atualization (request: Request, response: Response) {
+async function Atualization () {
   try {
+    const currentDate = new Date()
+    if (currentDate.getHours() >= 1 && currentDate.getHours() < 8) {
+      return
+    }
     const resultChampionship = await fetchData('/soccer/seasons', 'league_id=693')
     const championshipFilter = resultChampionship[resultChampionship.length - 1]
 
@@ -194,17 +195,17 @@ async function Atualization (request: Request, response: Response) {
     const ChampionshipRepositoty = getRepository(Championship)
     const championshipDB = await ChampionshipRepositoty.findOne({ seasonId: dataResultChampionship.seasonId })
     if (!championshipDB) {
-      return await initAll(request, response, dataResultChampionship)
+      return await initAll(dataResultChampionship)
     }
     const data = new Date()
-    if (data.getHours() === 22 && data.getMinutes() >= 30) {
-      return await atualizationMatchChampionship(request, response, championshipDB)
+    if (data.getHours() === 8 && data.getMinutes() <= 30) {
+      return await atualizationMatchChampionship(championshipDB)
     }
 
     const matchsLive = await fetchData('/soccer/matches',
       `season_id=${championshipDB.seasonId}&date_from=${data.getFullYear()}-${data.getMonth() + 1}-${data.getDate() - 1}&date_to=${data.getFullYear()}-${data.getMonth() + 1}-${data.getDate() + 1}`)
     if (matchsLive.length === 0) {
-      return response.json({ message: 'Not matches' })
+      return
     }
 
     const MatchRepository = getRepository(Match)
@@ -301,26 +302,21 @@ async function Atualization (request: Request, response: Response) {
             goalsConceded: itemStanding.goalsConceded,
             utilization: itemStanding.utilization
           })
-          console.log(`atualizou o clube: ${itemStanding.clube.name}, seus pontos são: ${itemStanding.points}`)
         }
       }
     }
-
-    return response.json(matchsLive)
   } catch (err) {
     console.log(err)
-    return response.status(400).json({ error: 'Error not found, try again' })
   }
 }
 
-async function atualizationMatchChampionship (request: Request, response: Response, championship: Championship) {
+async function atualizationMatchChampionship (championship: Championship) {
   const currentDate = new Date()
   let currentRodada = 0
   let menorDiffTime = currentDate.getTime()
 
   const MatchRepository = getRepository(Match)
   const matchsDB = (await MatchRepository.find({ relations: ['clubeHome', 'clubeAway', 'rodadaId'] }))
-    .filter(match => !match.finishPitaco)
 
   const ClubeRepository = getRepository(Clube)
   const clubesDB = await ClubeRepository.find()
@@ -394,8 +390,6 @@ async function atualizationMatchChampionship (request: Request, response: Respon
       currentRodada
     })
   }
-
-  return response.send()
 }
 
 function filterMatchRodada (matchs: DataRodadaMatch[]): Match[] {
