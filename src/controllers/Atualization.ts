@@ -32,10 +32,11 @@ async function initAll (request: Request, response: Response, paramsChampionship
     const resultMyLeagues = await fetchData('/soccer/leagues', 'subscribed=true')
     const myLeagueFilter = resultMyLeagues.find(item => item.league_id === 693)
 
+    const dateStartChampionship = new Date(`${paramsChampionship.startDate} 12:00:00`)
     const dataResultChampionship = {
       name: `${myLeagueFilter.name} ${paramsChampionship.name}`,
-      startDate: (new Date(`${paramsChampionship.startDate} 20:00:00`)).toLocaleDateString(),
-      endDate: (new Date(`${paramsChampionship.endDate} 20:00:00`)).toLocaleDateString(),
+      startDate: dateStartChampionship.toLocaleDateString(),
+      endDate: (new Date(`${paramsChampionship.endDate} 12:00:00`)).toLocaleDateString(),
       seasonId: paramsChampionship.seasonId
     } as DataRequestChampionship
 
@@ -87,9 +88,13 @@ async function initAll (request: Request, response: Response, paramsChampionship
       standingChampionship.push(itemStanding)
     }
 
+    const currentDate = new Date()
+    let currentRodada = 0
+    let menorDiffTime = currentDate.getTime()
+
     const matches: DataRodadaMatch[] = []
     const resultMatchs = await fetchData('/soccer/matches',
-      `season_id=${dataResultChampionship.seasonId}&date_from=${dataResultChampionship.startDate}`)
+      `season_id=${dataResultChampionship.seasonId}&date_from=${dateStartChampionship.getFullYear()}-${dateStartChampionship.getMonth() + 1}-${dateStartChampionship.getDate()}`)
     for (let k = 0; k < resultMatchs.length; k++) {
       const itemResultMatch = resultMatchs[k]
 
@@ -116,6 +121,14 @@ async function initAll (request: Request, response: Response, paramsChampionship
         match: dataMatch
       } as DataRodadaMatch
 
+      if (!dataMatch.finishPitaco) {
+        const diffTimeDate = Math.abs(currentDate.getTime() - date.getTime())
+        if (menorDiffTime > diffTimeDate) {
+          menorDiffTime = diffTimeDate
+          currentRodada = dataRodadaMatch.numRodada
+        }
+      }
+
       matches.push(dataRodadaMatch)
     }
 
@@ -137,6 +150,8 @@ async function initAll (request: Request, response: Response, paramsChampionship
       const rodadaChamspionship = {
         name: dataRodada.name,
         number: dataRodada.number,
+        prevRodada: dataRodada.number - 1,
+        proxRodada: dataRodada.number + 1,
         matchs: matchsFilter
       } as Rodada
 
@@ -147,6 +162,7 @@ async function initAll (request: Request, response: Response, paramsChampionship
       name: dataResultChampionship.name,
       startDate: dataResultChampionship.startDate,
       endDate: dataResultChampionship.endDate,
+      currentRodada: currentRodada,
       seasonId: dataResultChampionship.seasonId,
       standings: standingChampionship,
       rodadas: rodadasChampionship
@@ -181,6 +197,11 @@ async function Atualization (request: Request, response: Response) {
       return await initAll(request, response, dataResultChampionship)
     }
     const data = new Date()
+    if (data.getHours() === 2 && data.getHours() <= 30) {
+      await atualizationMatchChampionship(championshipDB)
+      return response.send()
+    }
+
     const matchsLive = await fetchData('/soccer/matches',
       `season_id=${championshipDB.seasonId}&date_from=${data.getFullYear()}-${data.getMonth() + 1}-${data.getDate() - 1}&date_to=${data.getFullYear()}-${data.getMonth() + 1}-${data.getDate() + 1}`)
     if (matchsLive.length === 0) {
@@ -200,14 +221,17 @@ async function Atualization (request: Request, response: Response) {
       const clubeAwayDB = await ClubeRepository.findOne({ clubeIdApi: parseInt(itemResultMatch.away_team.team_id) })
       const rodadaDB = await RodadaRepository.findOne({ number: parseInt(itemResultMatch.round.name) })
 
+      const date = new Date(itemResultMatch.match_start)
+      date.setHours(date.getHours() - 3)
       const finishHt = itemResultMatch.stats.ht_score
       const finishFt = itemResultMatch.stats.ft_score
 
       const dataMatch = {
         status: itemResultMatch.status,
         stadium: itemResultMatch.venue.name,
-        date: itemResultMatch.match_start.slice(0, 10),
-        hour: itemResultMatch.match_start.slice(11),
+        date: date.toLocaleDateString(),
+        hour: date.toLocaleTimeString(),
+        matchIdApi: parseInt(itemResultMatch.match_id),
         golsHome: parseInt(itemResultMatch.stats.home_score),
         golsAway: parseInt(itemResultMatch.stats.away_score),
         finishPitaco: (finishHt !== null && finishFt !== null) ? 1 : 0,
@@ -226,10 +250,6 @@ async function Atualization (request: Request, response: Response) {
         await MatchRepository.save(matchCreate)
       } else {
         if (!equalsMatch(matchDB, dataMatch)) {
-          if (dataMatch.finishPitaco === 1 && dataMatch.finishPitaco !== matchDB.finishPitaco) {
-            console.log('alterando Pontos do Pitaco')
-            await PitacoController.resultPitaco(matchDB, dataMatch.golsHome, dataMatch.golsAway)
-          }
           await MatchRepository.update(matchDB.id, {
             status: dataMatch.status,
             stadium: dataMatch.stadium,
@@ -240,6 +260,10 @@ async function Atualization (request: Request, response: Response) {
             finishPitaco: dataMatch.finishPitaco
           })
           updateStandings = true
+          if (dataMatch.finishPitaco === 1 && dataMatch.finishPitaco !== matchDB.finishPitaco) {
+            console.log('alterando Pontos do Pitaco')
+            await PitacoController.resultPitaco(matchDB, dataMatch.golsHome, dataMatch.golsAway)
+          }
         }
       }
     }
@@ -291,6 +315,89 @@ async function Atualization (request: Request, response: Response) {
   } catch (err) {
     console.log(err)
     return response.status(400).json({ error: 'Error not found, try again' })
+  }
+}
+
+async function atualizationMatchChampionship (championship: Championship) {
+  const currentDate = new Date()
+  let currentRodada = 0
+  let menorDiffTime = currentDate.getTime()
+
+  const MatchRepository = getRepository(Match)
+  const matchsDB = (await MatchRepository.find({ relations: ['clubeHome', 'clubeAway', 'rodadaId'] }))
+    .filter(match => !match.finishPitaco)
+
+  const ClubeRepository = getRepository(Clube)
+  const clubesDB = await ClubeRepository.find()
+
+  const RodadaRepository = getRepository(Rodada)
+
+  const resultMatchs = await fetchData('/soccer/matches',
+      `season_id=${championship.seasonId}&date_from=${currentDate.getFullYear()}-${currentDate.getMonth() + 1}-${currentDate.getDate()}`)
+
+  for (let i = 0; i < resultMatchs.length; i++) {
+    const itemResultMatch = resultMatchs[i]
+
+    const date = new Date(itemResultMatch.match_start)
+    date.setHours(date.getHours() - 3)
+    const finishHt = itemResultMatch.stats.ht_score
+    const finishFt = itemResultMatch.stats.ft_score
+
+    const dataMatch = {
+      status: itemResultMatch.status,
+      stadium: itemResultMatch.venue.name,
+      date: date.toLocaleDateString(),
+      hour: date.toLocaleTimeString(),
+      matchIdApi: parseInt(itemResultMatch.match_id),
+      golsHome: parseInt(itemResultMatch.stats.home_score),
+      golsAway: parseInt(itemResultMatch.stats.away_score),
+      finishPitaco: (finishHt !== null && finishFt !== null) ? 1 : 0,
+      clubeHome: clubesDB.find(clube => clube.clubeIdApi === parseInt(itemResultMatch.home_team.team_id)),
+      clubeAway: clubesDB.find(clube => clube.clubeIdApi === parseInt(itemResultMatch.away_team.team_id))
+    } as Match
+    const rodadaMatch = parseInt(itemResultMatch.round.name)
+
+    const matchFilter = matchsDB.find(match => (match.rodadaId.id === rodadaMatch &&
+      match.clubeHome.id === dataMatch.clubeHome.id &&
+      match.clubeAway.id === dataMatch.clubeAway.id))
+
+    if (!matchFilter) {
+      const rodada = await RodadaRepository.findOne({ number: rodadaMatch, championshipId: championship })
+      dataMatch.rodadaId = rodada
+      const matchCreate = MatchRepository.create(dataMatch)
+      await MatchRepository.save(matchCreate)
+    } else {
+      if (!equalsMatch(matchFilter, dataMatch)) {
+        await MatchRepository.update(matchFilter.id, {
+          status: dataMatch.status,
+          stadium: dataMatch.stadium,
+          date: dataMatch.date,
+          hour: dataMatch.hour,
+          golsHome: dataMatch.golsHome,
+          golsAway: dataMatch.golsAway,
+          finishPitaco: dataMatch.finishPitaco
+        })
+        if (dataMatch.finishPitaco === 1 && dataMatch.finishPitaco !== matchFilter.finishPitaco) {
+          console.log('alterando Pontos do Pitaco')
+          await PitacoController.resultPitaco(matchFilter, dataMatch.golsHome, dataMatch.golsAway)
+        }
+      }
+    }
+
+    if (!dataMatch.finishPitaco) {
+      const diffTimeDate = Math.abs(currentDate.getTime() - date.getTime())
+      if (menorDiffTime > diffTimeDate) {
+        menorDiffTime = diffTimeDate
+        currentRodada = rodadaMatch
+      }
+    }
+  }
+
+  if (currentRodada !== 0 && currentRodada !== championship.currentRodada) {
+    const ChampionshipRepository = getRepository(Championship)
+    await ChampionshipRepository.update(championship.id, {
+      currentRodada
+    })
   }
 }
 
