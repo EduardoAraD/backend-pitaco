@@ -18,6 +18,9 @@ export default class Championship {
     endDate: string
 
     @Column()
+    currentRodada: number
+
+    @Column()
     seasonId: number
 
     @OneToMany(() => Rodada, rodada => rodada.championshipId, {
