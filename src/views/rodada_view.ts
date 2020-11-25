@@ -7,6 +7,8 @@ export default {
     return {
       name: rodada.name,
       number: rodada.number,
+      prev: rodada.prevRodada,
+      prox: rodada.proxRodada,
       matchs: matchView.renderMany(rodada.matchs)
     }
   },
