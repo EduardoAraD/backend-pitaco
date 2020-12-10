@@ -12,6 +12,9 @@ export default class Leagues {
     @Column()
     name: string;
 
+    @Column()
+    taca: number;
+
     @OneToOne(() => Users, user => user.dono, {
       cascade: ['insert', 'update', 'remove']
     })

@@ -22,6 +22,10 @@ export class createUser1605096522040 implements MigrationInterface {
           type: 'varchar'
         },
         {
+          name: 'avatar',
+          type: 'varchar'
+        },
+        {
           name: 'email',
           type: 'varchar'
         },
@@ -32,6 +36,19 @@ export class createUser1605096522040 implements MigrationInterface {
         {
           name: 'codeResetExpires',
           type: 'varchar'
+        },
+        {
+          name: 'clubeId',
+          type: 'integer'
+        }
+      ],
+      foreignKeys: [
+        {
+          name: 'HeartClube',
+          columnNames: ['clubeId'],
+          referencedTableName: 'clube',
+          referencedColumnNames: ['id'],
+          onUpdate: 'CASCADE'
         }
       ]
     }))

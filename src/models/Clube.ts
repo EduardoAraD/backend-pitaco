@@ -2,6 +2,7 @@ import { Entity, Column, PrimaryGeneratedColumn, OneToOne, OneToMany } from 'typ
 
 import ClubeClassification from './ClubeClassification'
 import Match from './Match'
+import Users from './Users'
 
 @Entity('clube')
 export default class Clube {
@@ -34,4 +35,9 @@ export default class Clube {
       cascade: ['insert', 'update']
     })
     matchsAway: Match[]
+
+    @OneToMany(() => Users, user => user.heartClub, {
+      cascade: ['insert', 'update']
+    })
+    fans: Users
 }

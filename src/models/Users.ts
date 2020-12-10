@@ -1,9 +1,10 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToMany, JoinColumn, OneToOne } from 'typeorm'
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany, JoinColumn, OneToOne, ManyToOne } from 'typeorm'
 
 import Pitaco from './Pitaco'
 import Leagues from './Leagues'
 import Points from './Points'
 import Conquest from './Conquest'
+import Clube from './Clube'
 
 @Entity('users')
 export default class Users {
@@ -12,6 +13,9 @@ export default class Users {
 
     @Column()
     name: string;
+
+    @Column()
+    avatar: string;
 
     @Column()
     email: string;
@@ -44,4 +48,8 @@ export default class Users {
     })
     @JoinColumn({ name: 'userId' })
     conquests: Conquest[]
+
+    @ManyToOne(() => Clube, clube => clube.fans)
+    @JoinColumn({ name: 'clubeId' })
+    heartClub: Clube
 }
