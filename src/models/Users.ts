@@ -3,6 +3,7 @@ import { Entity, Column, PrimaryGeneratedColumn, OneToMany, JoinColumn, OneToOne
 import Pitaco from './Pitaco'
 import Leagues from './Leagues'
 import Points from './Points'
+import Conquest from './Conquest'
 
 @Entity('users')
 export default class Users {
@@ -37,4 +38,10 @@ export default class Users {
       cascade: ['insert', 'update']
     })
     pitacos: Pitaco[]
+
+    @OneToMany(() => Conquest, conquest => conquest.user, {
+      cascade: ['insert', 'update']
+    })
+    @JoinColumn({ name: 'userId' })
+    conquests: Conquest[]
 }

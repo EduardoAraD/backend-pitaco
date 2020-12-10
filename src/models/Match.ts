@@ -1,7 +1,7 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm'
+
 import Clube from './Clube'
 import Pitaco from './Pitaco'
-
 import Rodada from './Rodada'
 
 @Entity('match')

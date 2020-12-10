@@ -2,6 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, OneToMany, JoinColumn, OneToOne
 
 import Points from './Points'
 import Users from './Users'
+import Conquest from './Conquest'
 
 @Entity('leagues')
 export default class Leagues {
@@ -22,4 +23,9 @@ export default class Leagues {
     })
     @JoinColumn({ name: 'leagueId' })
     points: Points[];
+
+    @OneToMany(() => Conquest, conquest => conquest.league, {
+      cascade: ['insert', 'update']
+    })
+    conquests: Conquest[]
 }
