@@ -39,7 +39,8 @@ export class createUser1605096522040 implements MigrationInterface {
         },
         {
           name: 'clubeId',
-          type: 'integer'
+          type: 'integer',
+          isNullable: true
         }
       ],
       foreignKeys: [

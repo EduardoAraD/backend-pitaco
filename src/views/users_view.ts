@@ -9,7 +9,9 @@ export default {
       user: {
         name: user.name,
         email: user.email,
-        points: pointsView.renderManyNotUser(user.points)
+        avatar: user.avatar,
+        points: pointsView.renderManyNotUser(user.points),
+        heartClub: user.heartClub || {}
       },
       ChampionshipId: idChampionship
     }
@@ -17,7 +19,8 @@ export default {
   renderItem (user: User) {
     return {
       name: user.name,
-      email: user.email
+      email: user.email,
+      avatar: user.avatar
     }
   },
   renderMany (users: User[]) {

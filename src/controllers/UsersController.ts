@@ -28,117 +28,129 @@ interface DataRequestSignIn {
 
 export default {
   async signUp (request: Request, response: Response) {
-    const {
-      name,
-      email,
-      password,
-      confirmPassword
-    } = request.body
+    try {
+      const {
+        name,
+        email,
+        password,
+        confirmPassword
+      } = request.body
 
-    const data = {
-      name,
-      email,
-      password,
-      confirmPassword
-    } as DataRequestSignUp
+      const data = {
+        name,
+        email,
+        password,
+        confirmPassword
+      } as DataRequestSignUp
 
-    // checando dados
-    if (!data.email.match(emailRegex)) {
-      return response.status(400).send({ error: 'O e-mail informado não é válido' })
-    }
+      // checando dados
+      if (!data.email.match(emailRegex)) {
+        return response.status(400).send({ error: 'O e-mail informado não é válido' })
+      }
 
-    const salt = bcrypt.genSaltSync()
-    const passwordHash = bcrypt.hashSync(data.password, salt)
+      const salt = bcrypt.genSaltSync()
+      const passwordHash = bcrypt.hashSync(data.password, salt)
 
-    if (!bcrypt.compareSync(data.confirmPassword, passwordHash)) {
-      return response.status(400).send({ error: 'Senhas não conferem.' })
-    }
+      if (!bcrypt.compareSync(data.confirmPassword, passwordHash)) {
+        return response.status(400).send({ error: 'Senhas não conferem.' })
+      }
 
-    // checando email - DB
-    const UsersRepository = getRepository(Users)
+      // checando email - DB
+      const UsersRepository = getRepository(Users)
 
-    const userExisting = await UsersRepository.findOne({ email: data.email })
-    if (userExisting) {
-      return response.status(400).send({ error: 'Email já existente.' })
-    }
+      const userExisting = await UsersRepository.findOne({ email: data.email })
+      if (userExisting) {
+        return response.status(400).send({ error: 'Email já existente.' })
+      }
 
-    // criadno o User no DB
+      // criadno o User no DB
+      const LeagueRepository = getRepository(Leagues)
+      let PitacoLeague = await LeagueRepository.findOne({ id: 1 })
+      if (!PitacoLeague) {
+        const userPitacoData = {
+          name: 'Pitaco',
+          email: '123456',
+          avatar: 'https://images.assetsdelivery.com/compings_v2/get4net/get4net1901/get4net190113054.jpg',
+          password: '123456',
+          codeResetExpires: '',
+          codeResetPassword: ''
+        }
 
-    const LeagueRepository = getRepository(Leagues)
-    let PitacoLeague = await LeagueRepository.findOne({ id: 1 })
-    if (!PitacoLeague) {
-      const userPitacoData = {
-        name: 'Pitaco',
-        email: '123456',
-        password: '123456',
+        const userPitaco = UsersRepository.create(userPitacoData)
+        await UsersRepository.save(userPitaco)
+        const PitacoLeagueData = {
+          name: 'Pitaco League',
+          dono: userPitaco,
+          taca: '0'
+        }
+
+        PitacoLeague = LeagueRepository.create(PitacoLeagueData)
+        await LeagueRepository.save(PitacoLeague)
+      }
+
+      const pointsData = {
+        points: 0,
+        exactScore: 0,
+        leagueId: PitacoLeague
+      }
+
+      const points = []
+      points.push(pointsData)
+
+      const userData = {
+        name: data.name,
+        email: data.email,
+        avatar: 'https://images.assetsdelivery.com/compings_v2/get4net/get4net1901/get4net190113054.jpg',
+        password: passwordHash,
+        codeResetPassword: '',
         codeResetExpires: '',
-        codeResetPassword: ''
+        points: points
       }
 
-      const userPitaco = UsersRepository.create(userPitacoData)
-      await UsersRepository.save(userPitaco)
-      const PitacoLeagueData = {
-        name: 'Pitaco League',
-        dono: userPitaco
-      }
+      const user = UsersRepository.create(userData)
 
-      PitacoLeague = LeagueRepository.create(PitacoLeagueData)
-      await LeagueRepository.save(PitacoLeague)
-    }
+      await UsersRepository.save(user)
 
-    const pointsData = {
-      points: 0,
-      exactScore: 0,
-      leagueId: PitacoLeague
-    }
-
-    const points = []
-    points.push(pointsData)
-
-    const userData = {
-      name: data.name,
-      email: data.email,
-      password: passwordHash,
-      codeResetPassword: '',
-      codeResetExpires: '',
-      points: points
-    }
-
-    const user = UsersRepository.create(userData)
-
-    await UsersRepository.save(user)
-
-    const token = jwt.sign({ ...user }, process.env.AUTHSECRET as string, {
-      expiresIn: '30 day'
-    })
-
-    const idChampionship = await ChampionshipController.currentChampionship()
-
-    return response.json(UsersView.render(token, user, idChampionship))
-  },
-
-  async signIn (request: Request, response: Response) {
-    const {
-      email,
-      password
-    } = request.body
-
-    const data = { email, password } as DataRequestSignIn
-
-    const usersRepository = getRepository(Users)
-
-    const user = await usersRepository.findOne({ email: data.email }, { relations: ['points'] })
-
-    if (user && bcrypt.compareSync(data.password, user.password)) {
       const token = jwt.sign({ ...user }, process.env.AUTHSECRET as string, {
-        expiresIn: '1 day'
+        expiresIn: '30 day'
       })
 
       const idChampionship = await ChampionshipController.currentChampionship()
 
       return response.json(UsersView.render(token, user, idChampionship))
-    } else {
-      return response.status(400).send({ message: 'Usuário/Senha inválidos' })
+    } catch (e) {
+      console.log(e)
+      return response.status(400).send({ error: 'Error on create user, try again' })
+    }
+  },
+
+  async signIn (request: Request, response: Response) {
+    try {
+      const {
+        email,
+        password
+      } = request.body
+
+      const data = { email, password } as DataRequestSignIn
+
+      const usersRepository = getRepository(Users)
+
+      const user = await usersRepository.findOne({ email: data.email }, { relations: ['points', 'heartClub'] })
+
+      if (user && bcrypt.compareSync(data.password, user.password)) {
+        const token = jwt.sign({ ...user }, process.env.AUTHSECRET as string, {
+          expiresIn: '1 day'
+        })
+
+        const idChampionship = await ChampionshipController.currentChampionship()
+
+        return response.json(UsersView.render(token, user, idChampionship))
+      } else {
+        return response.status(400).send({ message: 'Usuário/Senha inválidos' })
+      }
+    } catch (e) {
+      console.log(e)
+      return response.status(400).send({ error: 'Error on Sign In, try again' })
     }
   },
 
