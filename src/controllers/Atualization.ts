@@ -45,7 +45,7 @@ async function initAll (paramsChampionship: DataRequestChampionship) {
     const resultClubes = await fetchData('/soccer/teams', `country_id=${myLeagueFilter.country_id}`)
 
     for (let i = 0; i < resultClubes.length; i++) {
-      const name = resultClubes[i].slice(-3).slice(0, 1) === ' ' ? resultClubes[i].name.slice(0, -3) : resultClubes[i]
+      const name = resultClubes[i].name.slice(-3).slice(0, 1) === ' ' ? resultClubes[i].name.slice(0, -3) : resultClubes[i].name
       const dataClube = {
         name,
         shortCode: resultClubes[i].short_code,
@@ -271,8 +271,7 @@ async function Atualization () {
       const standingsDB = await StandingsRepository.find({ relations: ['clube', 'championshipId'] })
       const standingsChamspionshipDB = standingsDB.filter(item => item.championshipId.id === championshipDB.id)
 
-      const resultStandings = await fetchData('/soccer/standings',
-    `season_id=${dataResultChampionship.seasonId}`)
+      const resultStandings = await fetchData('/soccer/standings', `season_id=${dataResultChampionship.seasonId}`)
 
       const standing = resultStandings.standings
 
