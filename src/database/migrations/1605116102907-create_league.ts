@@ -18,8 +18,12 @@ export class createLeague1605116102907 implements MigrationInterface {
           type: 'varchar'
         },
         {
-          name: 'taca',
-          type: 'integer'
+          name: 'description',
+          type: 'varchar'
+        },
+        {
+          name: 'trophy',
+          type: 'varchar'
         },
         {
           name: 'donoId',

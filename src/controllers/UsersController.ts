@@ -81,7 +81,8 @@ export default {
         const PitacoLeagueData = {
           name: 'Pitaco League',
           dono: userPitaco,
-          taca: '0'
+          description: 'Todos contra todos, boa sorte Pitaqueiros. "Pitaco League"',
+          trophy: '0'
         }
 
         PitacoLeague = LeagueRepository.create(PitacoLeagueData)

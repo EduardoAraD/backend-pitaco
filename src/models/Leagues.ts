@@ -13,7 +13,10 @@ export default class Leagues {
     name: string;
 
     @Column()
-    taca: number;
+    description: string;
+
+    @Column()
+    trophy: string;
 
     @OneToOne(() => Users, user => user.dono, {
       cascade: ['insert', 'update', 'remove']

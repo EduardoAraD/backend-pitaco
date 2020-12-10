@@ -8,6 +8,8 @@ export default {
     return {
       league: {
         name: league.name,
+        description: league.description,
+        trophy: league.trophy,
         dono: usersView.renderItem(league.dono),
         points: pointsView.renderMany(league.points)
       }
