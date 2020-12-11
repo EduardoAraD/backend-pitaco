@@ -147,7 +147,7 @@ export default {
 
         return response.json(UsersView.render(token, user, idChampionship))
       } else {
-        return response.status(400).send({ message: 'Usuário/Senha inválidos' })
+        return response.status(400).send({ error: 'Usuário/Senha inválidos' })
       }
     } catch (e) {
       console.log(e)
