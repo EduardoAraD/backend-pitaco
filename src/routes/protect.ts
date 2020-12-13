@@ -18,6 +18,7 @@ routes.delete('/leagues/:id', LeaguesController.delete)
 routes.get('/pitacos', PitacoController.index)
 routes.post('/pitacos', PitacoController.createUpdate)
 routes.post('/pitacos-rodada/user', PitacoController.showUserRodada)
+routes.post('/pitacos-today/user', PitacoController.showUserMatchsDay)
 
 routes.get('/championship/:id/tabela/', ChampionshipController.tabela)
 routes.get('/championship/:id/rodadas', ChampionshipController.rodadas)
