@@ -5,6 +5,7 @@ import clubeView from './clube_view'
 export default {
   renderItem (match: Match) {
     return {
+      id: match.id,
       status: match.status,
       stadium: match.stadium,
       date: match.date,

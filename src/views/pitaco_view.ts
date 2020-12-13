@@ -8,6 +8,8 @@ export default {
     return {
       golsHome: pitaco.golsHome,
       golsAway: pitaco.golsAway,
+      point: pitaco.point,
+      exactScore: pitaco.exactScore,
       user: usersView.renderItem(pitaco.userId),
       match: matchView.renderItem(pitaco.matchId)
     }

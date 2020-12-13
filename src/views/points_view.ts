@@ -5,19 +5,15 @@ import usersView from './users_view'
 export default {
   render (point: Points) {
     return {
-      points: {
-        points: point.points,
-        exactScore: point.exactScore,
-        user: usersView.renderItem(point.userId)
-      }
+      points: point.points,
+      exactScore: point.exactScore,
+      user: usersView.renderItem(point.userId)
     }
   },
   renderNotUser (point: Points) {
     return {
-      points: {
-        points: point.points,
-        exactScore: point.exactScore
-      }
+      points: point.points,
+      exactScore: point.exactScore
     }
   },
   renderMany (points: Points[]) {

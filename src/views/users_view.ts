@@ -3,7 +3,7 @@ import User from '@models/Users'
 import pointsView from './points_view'
 
 export default {
-  render (token: string, user: User, idChampionship: number) {
+  render (token: string, user: User, championship: number) {
     return {
       token: token,
       user: {
@@ -13,7 +13,7 @@ export default {
         points: pointsView.renderManyNotUser(user.points),
         heartClub: user.heartClub || {}
       },
-      ChampionshipId: idChampionship
+      championship: championship
     }
   },
   renderItem (user: User) {

@@ -6,13 +6,11 @@ import pointsView from './points_view'
 export default {
   render (league: Leagues) {
     return {
-      league: {
-        name: league.name,
-        description: league.description,
-        trophy: league.trophy,
-        dono: usersView.renderItem(league.dono),
-        points: pointsView.renderMany(league.points)
-      }
+      name: league.name,
+      description: league.description,
+      trophy: league.trophy,
+      dono: usersView.renderItem(league.dono),
+      points: pointsView.renderMany(league.points)
     }
   },
   renderMany (leagues: Leagues[]) {
