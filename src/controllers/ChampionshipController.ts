@@ -66,7 +66,7 @@ export default {
 
   async matchsRodada (request: Request, response: Response) {
     const { id, numRodada } = request.params
-    const data = { id: parseInt(id), rodada: parseInt(numRodada) } as DataRequestParams
+    const data = { id: parseInt(id), rodadaId: parseInt(numRodada) } as DataRequestParams
 
     const ChampionshipRepository = getRepository(Championship)
     const championshipDB = await ChampionshipRepository.findOne({ id: data.id }, { relations: ['rodadas'] })
