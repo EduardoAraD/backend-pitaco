@@ -7,6 +7,7 @@ import Match from '@models/Match'
 
 import standingsView from '@views/standings_view'
 import rodadaView from '@views/rodada_view'
+import { stringForDate } from 'src/functions'
 
 interface DataRequestParams {
   id: number,
@@ -107,9 +108,9 @@ export default {
     let id = 0
     let menor = currentDate.getTime()
     for (let i = 0; i < championshipsDB.length; i++) {
-      const dateStartChampionship = new Date(`${championshipsDB[i].startDate} 12:00:00`)
-      const dateEndChampionship = new Date(`${championshipsDB[i].endDate} 12:00:00`)
-      if (dateStartChampionship <= currentDate && dateEndChampionship >= currentDate) {
+      const dateStartChampionship = stringForDate(championshipsDB[i].startDate, '12:00:00')
+      const dateEndChampionship = stringForDate(championshipsDB[i].endDate, '12:00:00')
+      if (dateStartChampionship.getTime() <= currentDate.getTime() && dateEndChampionship.getTime() >= currentDate.getTime()) {
         return championshipsDB[i].id
       } else {
         const diffTimeStartCurrent = Math.abs(currentDate.getTime() - dateStartChampionship.getTime())

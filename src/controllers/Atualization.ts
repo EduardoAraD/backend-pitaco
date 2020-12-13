@@ -34,8 +34,8 @@ async function initAll (paramsChampionship: DataRequestChampionship) {
     const dateStartChampionship = new Date(`${paramsChampionship.startDate} 12:00:00`)
     const dataResultChampionship = {
       name: `${myLeagueFilter.name} ${paramsChampionship.name}`,
-      startDate: dateStartChampionship.toLocaleDateString(),
-      endDate: (new Date(`${paramsChampionship.endDate} 12:00:00`)).toLocaleDateString(),
+      startDate: DateForStringDay(dateStartChampionship),
+      endDate: DateForStringDay((new Date(`${paramsChampionship.endDate} 12:00:00`))),
       seasonId: paramsChampionship.seasonId
     } as DataRequestChampionship
 
@@ -106,7 +106,7 @@ async function initAll (paramsChampionship: DataRequestChampionship) {
       const dataMatch = {
         status: itemResultMatch.status,
         stadium: itemResultMatch.venue.name,
-        date: date.toLocaleDateString(),
+        date: DateForStringDay(date),
         hour: date.toLocaleTimeString(),
         matchIdApi: parseInt(itemResultMatch.match_id),
         golsHome: parseInt(itemResultMatch.stats.home_score),
@@ -228,7 +228,7 @@ async function Atualization () {
       const dataMatch = {
         status: itemResultMatch.status,
         stadium: itemResultMatch.venue.name,
-        date: date.toLocaleDateString(),
+        date: DateForStringDay(date),
         hour: date.toLocaleTimeString(),
         matchIdApi: parseInt(itemResultMatch.match_id),
         golsHome: parseInt(itemResultMatch.stats.home_score),
@@ -336,7 +336,7 @@ async function atualizationMatchChampionship (championship: Championship) {
     const dataMatch = {
       status: itemResultMatch.status,
       stadium: itemResultMatch.venue.name,
-      date: date.toLocaleDateString(),
+      date: DateForStringDay(date),
       hour: date.toLocaleTimeString(),
       matchIdApi: parseInt(itemResultMatch.match_id),
       golsHome: parseInt(itemResultMatch.stats.home_score),
@@ -430,6 +430,10 @@ function equalsItemStanding (standing1: ClubeClassification, standing2: ClubeCla
   return standing1.points === standing2.points && standing1.wins === standing2.wins &&
     standing1.draw === standing2.draw && standing1.matchs === standing2.matchs &&
     standing1.goalsScored === standing2.goalsScored && standing1.goalsConceded === standing2.goalsConceded
+}
+
+function DateForStringDay (data: Date) {
+  return `${data.getDate()}/${data.getMonth() + 1}/${data.getFullYear()}`
 }
 
 export { Atualization }
