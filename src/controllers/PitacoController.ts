@@ -9,7 +9,7 @@ import Match from '@models/Match'
 import pitacoView from '@views/pitaco_view'
 import matchView from '@views/match_view'
 import Championship from '@models/Championship'
-import { stringForDate } from 'src/functions'
+import { firstMatch, stringForDate } from 'src/functions'
 
 interface DataRequestCreate {
     email: string,
@@ -60,6 +60,7 @@ export default {
       const MatchRepository = getRepository(Match)
       const matchsDB = await MatchRepository.find({ relations: ['clubeHome', 'clubeAway', 'rodadaId'] })
       const matchs = matchsDB.filter(match => match.rodadaId.id === rodadaDB.id)
+        .sort((a, b) => firstMatch(a, b))
 
       const PitacoRepository = getRepository(Pitaco)
       const pitacosOfUser: Pitaco[] = []
@@ -94,6 +95,7 @@ export default {
       const MatchRepository = getRepository(Match)
       const matchsDB = await MatchRepository.find({ relations: ['clubeHome', 'clubeAway'] })
       const matchs = matchsDB.filter(match => match.date === data.date)
+        .sort((a, b) => firstMatch(a, b))
 
       const PitacoRepository = getRepository(Pitaco)
       const pitacosOfUser: Pitaco[] = []

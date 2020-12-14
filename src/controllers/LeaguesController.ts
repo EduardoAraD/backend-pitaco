@@ -11,6 +11,8 @@ import PointView from '@views/points_view'
 import Clube from '@models/Clube'
 import Championship from '@models/Championship'
 
+import { firstPoint } from 'src/functions'
+
 interface DataRequestCreate {
   email: string;
   name: string;
@@ -60,6 +62,7 @@ export default {
       })
 
       league.points = points.filter(point => league.id === point.leagueId.id && point.accept === 1)
+        .sort((a, b) => firstPoint(a, b))
 
       return response.json(LeaguesView.render(league))
     } catch (e) {
@@ -83,7 +86,7 @@ export default {
         .map(item => {
           item.userId = usersDB.find(itemUser => item.userId.id === itemUser.id)
           return item
-        })
+        }).sort((a, b) => firstPoint(a, b))
 
       return response.send(PointView.renderMany(pointsDB))
     } catch (e) {
@@ -113,6 +116,7 @@ export default {
       })
 
       league.points = points.filter(point => league.id === point.leagueId.id)
+        .sort((a, b) => firstPoint(a, b))
 
       return response.json(LeaguesView.render(league))
     } catch (e) {
@@ -154,7 +158,7 @@ export default {
           point.userId = usersDB.find(item => item.id === point.userId.id)
           point.userId.heartClub = clubeDB
           return point
-        })
+        }).sort((a, b) => firstPoint(a, b))
 
       return response.json(LeaguesView.render(leagueClub))
     } catch (e) {
@@ -188,6 +192,7 @@ export default {
       })
 
       league.points = points.filter(point => league.id === point.leagueId.id)
+        .sort((a, b) => firstPoint(a, b))
 
       return response.json(LeaguesView.render(league))
     } catch (e) {
@@ -226,6 +231,7 @@ export default {
 
       const leagues = leagueGuest.map(item => {
         item.points = pointsDB.filter(point => point.leagueId.id === item.id)
+          .sort((a, b) => firstPoint(a, b))
         return item
       })
 

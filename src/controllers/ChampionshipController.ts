@@ -7,7 +7,7 @@ import Match from '@models/Match'
 
 import standingsView from '@views/standings_view'
 import rodadaView from '@views/rodada_view'
-import { stringForDate } from 'src/functions'
+import { firstMatch, stringForDate } from 'src/functions'
 import { Atualization } from './Atualization'
 
 interface DataRequestParams {
@@ -59,6 +59,7 @@ export default {
     const matchs = await MatchRepository.find({ relations: ['clubeHome', 'clubeAway', 'rodadaId'] })
     const rodadas = championshipDB.rodadas.map(rodada => {
       rodada.matchs = matchs.filter(match => match.rodadaId.id === rodada.id)
+        .sort((a, b) => firstMatch(a, b))
       return rodada
     })
 
@@ -79,6 +80,7 @@ export default {
     const MatchRepository = getRepository(Match)
     const matchsDB = await MatchRepository.find({ relations: ['clubeHome', 'clubeAway', 'rodadaId'] })
     rodada.matchs = matchsDB.filter(match => match.rodadaId.id === rodada.id)
+      .sort((a, b) => firstMatch(a, b))
 
     return response.json(rodadaView.renderItem(rodada))
   },
@@ -97,6 +99,7 @@ export default {
     const MatchRepository = getRepository(Match)
     const matchsDB = await MatchRepository.find({ relations: ['clubeHome', 'clubeAway', 'rodadaId'] })
     rodada.matchs = matchsDB.filter(match => match.rodadaId.id === rodada.id)
+      .sort((a, b) => firstMatch(a, b))
 
     return response.json(rodadaView.renderItem(rodada))
   },
