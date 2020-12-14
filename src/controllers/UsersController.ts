@@ -67,23 +67,14 @@ export default {
       const LeagueRepository = getRepository(Leagues)
       let PitacoLeague = await LeagueRepository.findOne({ id: 1 })
       if (!PitacoLeague) {
-        const userPitacoData = {
-          name: 'Pitaco',
-          email: '123456',
-          avatar: 'https://images.assetsdelivery.com/compings_v2/get4net/get4net1901/get4net190113054.jpg',
-          password: '123456',
-          codeResetExpires: '',
-          codeResetPassword: ''
-        }
-
-        const userPitaco = UsersRepository.create(userPitacoData)
-        await UsersRepository.save(userPitaco)
+        const championship = await ChampionshipController.currentChampionship()
         const PitacoLeagueData = {
+          sistem: 1,
           name: 'Pitaco League',
-          dono: userPitaco,
           description: 'Todos contra todos, boa sorte Pitaqueiros. "Pitaco League"',
-          trophy: '0'
-        }
+          trophy: '0',
+          championship
+        } as Leagues
 
         PitacoLeague = LeagueRepository.create(PitacoLeagueData)
         await LeagueRepository.save(PitacoLeague)
@@ -92,6 +83,7 @@ export default {
       const pointsData = {
         points: 0,
         exactScore: 0,
+        accept: 1,
         leagueId: PitacoLeague
       }
 
@@ -116,7 +108,7 @@ export default {
         expiresIn: '30 day'
       })
 
-      const idChampionship = await ChampionshipController.currentChampionship()
+      const idChampionship = (await ChampionshipController.currentChampionship()).id
 
       return response.json(UsersView.render(token, user, idChampionship))
     } catch (e) {
@@ -143,7 +135,7 @@ export default {
           expiresIn: '1 day'
         })
 
-        const idChampionship = await ChampionshipController.currentChampionship()
+        const idChampionship = (await ChampionshipController.currentChampionship()).id
 
         return response.json(UsersView.render(token, user, idChampionship))
       } else {
