@@ -8,6 +8,7 @@ import Match from '@models/Match'
 import standingsView from '@views/standings_view'
 import rodadaView from '@views/rodada_view'
 import { stringForDate } from 'src/functions'
+import { Atualization } from './Atualization'
 
 interface DataRequestParams {
   id: number,
@@ -102,16 +103,20 @@ export default {
 
   async currentChampionship () {
     const ChampionshipRepository = getRepository(Championship)
-    const championshipsDB = await ChampionshipRepository.find()
+    let championshipsDB: Championship[] = await ChampionshipRepository.find()
+    if (championshipsDB.length === 0) {
+      await Atualization()
+      championshipsDB = await ChampionshipRepository.find()
+    }
 
     const currentDate = new Date()
-    let id = 0
+    let championshipReturn: Championship = championshipsDB[0]
     let menor = currentDate.getTime()
     for (let i = 0; i < championshipsDB.length; i++) {
       const dateStartChampionship = stringForDate(championshipsDB[i].startDate, '12:00:00')
       const dateEndChampionship = stringForDate(championshipsDB[i].endDate, '12:00:00')
       if (dateStartChampionship.getTime() <= currentDate.getTime() && dateEndChampionship.getTime() >= currentDate.getTime()) {
-        return championshipsDB[i].id
+        return championshipsDB[i]
       } else {
         const diffTimeStartCurrent = Math.abs(currentDate.getTime() - dateStartChampionship.getTime())
         const diffTimeEndCurrent = Math.abs(currentDate.getTime() - dateEndChampionship.getTime())
@@ -119,10 +124,10 @@ export default {
 
         if (menor > menorTimeChampionship) {
           menor = menorTimeChampionship
-          id = championshipsDB[i].id
+          championshipReturn = championshipsDB[i]
         }
       }
     }
-    return id
+    return championshipReturn
   }
 }
