@@ -1,6 +1,7 @@
 import { Entity, Column, PrimaryGeneratedColumn, OneToMany, JoinColumn } from 'typeorm'
 
 import ClubeClassification from './ClubeClassification'
+import Leagues from './Leagues'
 import Rodada from './Rodada'
 
 @Entity('championship')
@@ -34,4 +35,9 @@ export default class Championship {
     })
     @JoinColumn({ name: 'championshipId' })
     standings: ClubeClassification[]
+
+    @OneToMany(() => Leagues, league => league.championship, {
+      cascade: ['insert', 'update']
+    })
+    leagues: Leagues[]
 }

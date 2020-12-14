@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToMany, JoinColumn, OneToOne, ManyToOne } from 'typeorm'
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany, JoinColumn, ManyToOne } from 'typeorm'
 
 import Pitaco from './Pitaco'
 import Leagues from './Leagues'
@@ -35,8 +35,10 @@ export default class Users {
     @JoinColumn({ name: 'userId' })
     points: Points[];
 
-    @OneToOne(() => Leagues, league => league.dono)
-    dono: Leagues;
+    @OneToMany(() => Leagues, league => league.dono, {
+      cascade: ['insert', 'update']
+    })
+    leagues: Leagues[];
 
     @OneToMany(() => Pitaco, pitaco => pitaco.userId, {
       cascade: ['insert', 'update']
