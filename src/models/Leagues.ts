@@ -1,13 +1,17 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, JoinColumn, OneToOne } from 'typeorm'
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, JoinColumn, ManyToOne } from 'typeorm'
 
 import Points from './Points'
 import Users from './Users'
 import Conquest from './Conquest'
+import Championship from './Championship'
 
 @Entity('leagues')
 export default class Leagues {
     @PrimaryGeneratedColumn('increment')
     id: number;
+
+    @Column()
+    sistem: number;
 
     @Column()
     name: string;
@@ -18,9 +22,11 @@ export default class Leagues {
     @Column()
     trophy: string;
 
-    @OneToOne(() => Users, user => user.dono, {
-      cascade: ['insert', 'update', 'remove']
-    })
+    @ManyToOne(() => Championship, championship => championship.leagues)
+    @JoinColumn({ name: 'championshipId' })
+    championship: Championship
+
+    @ManyToOne(() => Users, user => user.leagues)
     @JoinColumn({ name: 'donoId' })
     dono: Users;
 

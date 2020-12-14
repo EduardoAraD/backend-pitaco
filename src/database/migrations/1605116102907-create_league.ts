@@ -14,6 +14,10 @@ export class createLeague1605116102907 implements MigrationInterface {
           generationStrategy: 'increment'
         },
         {
+          name: 'sistem',
+          type: 'integer'
+        },
+        {
           name: 'name',
           type: 'varchar'
         },
@@ -27,6 +31,11 @@ export class createLeague1605116102907 implements MigrationInterface {
         },
         {
           name: 'donoId',
+          type: 'integer',
+          isNullable: true
+        },
+        {
+          name: 'championshipId',
           type: 'integer'
         }
       ],
@@ -35,6 +44,14 @@ export class createLeague1605116102907 implements MigrationInterface {
           name: 'LeagueDono',
           columnNames: ['donoId'],
           referencedTableName: 'users',
+          referencedColumnNames: ['id'],
+          onUpdate: 'CASCADE',
+          onDelete: 'CASCADE'
+        },
+        {
+          name: 'LeagueChampionship',
+          columnNames: ['donoId'],
+          referencedTableName: 'championship',
           referencedColumnNames: ['id'],
           onUpdate: 'CASCADE',
           onDelete: 'CASCADE'
