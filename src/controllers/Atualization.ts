@@ -218,7 +218,7 @@ async function Atualization () {
       const itemResultMatch = matchsLive[i]
       const clubeHomeDB = await ClubeRepository.findOne({ clubeIdApi: parseInt(itemResultMatch.home_team.team_id) })
       const clubeAwayDB = await ClubeRepository.findOne({ clubeIdApi: parseInt(itemResultMatch.away_team.team_id) })
-      const rodadaDB = await RodadaRepository.findOne({ number: parseInt(itemResultMatch.round.name) })
+      const rodadaDB = await RodadaRepository.findOne({ championshipId: championshipDB, number: parseInt(itemResultMatch.round.name) })
 
       const date = new Date(itemResultMatch.match_start)
       date.setHours(date.getHours() - 3)
@@ -421,7 +421,7 @@ function filterMatchRodada (matchs: DataRodadaMatch[]): Match[] {
 
 function equalsMatch (match1: Match, match2: Match): boolean {
   return match1.status === match2.status && match1.stadium === match2.stadium &&
-    match1.date === match2.date && match1.hour === match2.hour && match1.matchIdApi === match2.matchIdApi &&
+    match1.date === match2.date && match1.hour === match2.hour &&
     match1.golsHome === match2.golsHome && match1.golsAway === match2.golsAway &&
     match1.finishPitaco === match2.finishPitaco
 }
