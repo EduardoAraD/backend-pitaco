@@ -26,6 +26,10 @@ export class createPoints1605114158842 implements MigrationInterface {
           type: 'integer'
         },
         {
+          name: 'accept',
+          type: 'integer'
+        },
+        {
           name: 'leagueId',
           type: 'integer'
         }

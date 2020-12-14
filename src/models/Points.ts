@@ -14,6 +14,9 @@ export default class Points {
     @Column()
     exactScore: string;
 
+    @Column()
+    accept: number;
+
     @ManyToOne(() => Users, user => user.points)
     @JoinColumn({ name: 'userId' })
     userId: Users;
