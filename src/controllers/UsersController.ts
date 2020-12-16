@@ -224,5 +224,26 @@ export default {
       console.log(err)
       return response.status(400).send({ error: 'Erro on reset password, try again' })
     }
+  },
+
+  async initUser (request: Request, response: Response) {
+    try {
+      const { email } = request.body
+      const data = { email }
+
+      const UsersRepository = getRepository(Users)
+      const userDB = await UsersRepository.findOne({ email: data.email }, { relations: ['points', 'heartClub'] })
+      if (!userDB) return response.status(400).send('User not found')
+
+      const token = jwt.sign({ ...userDB }, process.env.AUTHSECRET as string, {
+        expiresIn: '1 day'
+      })
+      const idChampionship = (await ChampionshipController.currentChampionship()).id
+
+      return response.json(UsersView.render(token, userDB, idChampionship))
+    } catch (err) {
+      console.log(err)
+      return response.status(400).send({ error: 'Erro on init User, try again ' })
+    }
   }
 }

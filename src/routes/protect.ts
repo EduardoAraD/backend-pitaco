@@ -5,11 +5,14 @@ import PitacoController from '@controllers/PitacoController'
 import ChampionshipController from '@controllers/ChampionshipController'
 
 import auth from '../middlewares/auth'
+import UsersController from '@controllers/UsersController'
 
 const routes = Router()
 routes.use(auth)
 
-routes.get('/leagues', LeaguesController.index)
+routes.post('/init-user', UsersController.initUser)
+
+routes.post('/leagues', LeaguesController.index)
 routes.get('/leagues/:id', LeaguesController.show)
 routes.post('/league', LeaguesController.create)
 routes.post('/league-dono', LeaguesController.showLeagueDono)
