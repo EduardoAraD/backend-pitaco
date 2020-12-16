@@ -28,11 +28,14 @@ interface DataRequestLeagueDono {
 export default {
   async index (request: Request, response: Response) {
     try {
+      const { championship } = request.body
+      const data = { id: parseInt(championship, 10) }
+
       const leaguesRepository = getRepository(Leagues)
 
       const leagues = (await leaguesRepository.find({
         relations: ['dono', 'championship']
-      })).filter(item => item.sistem === 0)
+      })).filter(item => item.sistem === 0 && item.championship.id === data.id)
         .map(item => { item.points = []; return item })
 
       return response.json(LeaguesView.renderMany(leagues))

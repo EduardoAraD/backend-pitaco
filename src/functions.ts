@@ -15,9 +15,9 @@ export function firstMatch (match1: Match, match2: Match) {
 }
 
 export function firstPoint (point1: Points, point2: Points) {
-  if (point1.points > point2.points) { return 1 }
+  if (point1.points < point2.points) { return 1 }
   if (point1.points === point2.points) {
-    if (point1.exactScore > point2.exactScore) { return 1 }
+    if (point1.exactScore < point2.exactScore) { return 1 }
     if (point1.exactScore === point2.exactScore) { return 0 }
   }
   return -1
