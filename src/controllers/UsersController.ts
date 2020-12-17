@@ -11,6 +11,7 @@ import Leagues from '@models/Leagues'
 
 import UsersView from '@views/users_view'
 import ChampionshipController from './ChampionshipController'
+import Clube from '@models/Clube'
 
 const emailRegex = /\S+@\S+\.\S+/
 
@@ -97,7 +98,8 @@ export default {
         password: passwordHash,
         codeResetPassword: '',
         codeResetExpires: '',
-        points: points
+        points: points,
+        conquests: []
       }
 
       const user = UsersRepository.create(userData)
@@ -123,12 +125,14 @@ export default {
         email,
         password
       } = request.body
+      if (email === '') return response.status(400).send({ error: 'Email não fornecido' })
+      if (password === '') return response.status(400).send({ error: 'Senha não fornecida' })
 
       const data = { email, password } as DataRequestSignIn
 
       const usersRepository = getRepository(Users)
 
-      const user = await usersRepository.findOne({ email: data.email }, { relations: ['points', 'heartClub'] })
+      const user = await usersRepository.findOne({ email: data.email }, { relations: ['points', 'heartClub', 'conquests'] })
 
       if (user && bcrypt.compareSync(data.password, user.password)) {
         const token = jwt.sign({ ...user }, process.env.AUTHSECRET as string, {
@@ -232,7 +236,7 @@ export default {
       const data = { email }
 
       const UsersRepository = getRepository(Users)
-      const userDB = await UsersRepository.findOne({ email: data.email }, { relations: ['points', 'heartClub'] })
+      const userDB = await UsersRepository.findOne({ email: data.email }, { relations: ['points', 'heartClub', 'conquests'] })
       if (!userDB) return response.status(400).send('User not found')
 
       const token = jwt.sign({ ...userDB }, process.env.AUTHSECRET as string, {
@@ -244,6 +248,31 @@ export default {
     } catch (err) {
       console.log(err)
       return response.status(400).send({ error: 'Erro on init User, try again ' })
+    }
+  },
+
+  async chooseClub (request: Request, response: Response) {
+    try {
+      const { email, clubeId } = request.body
+      const data = { email, clube: parseInt(clubeId, 10) }
+
+      const UsersRepository = getRepository(Users)
+      const userDB = await UsersRepository.findOne({ email: data.email }, { relations: ['points', 'conquests'] })
+      if (!userDB) return response.status(400).send('User not found')
+
+      const ClubeRepository = getRepository(Clube)
+      const clubeDB = await ClubeRepository.findOne({ id: data.clube })
+      if (!clubeDB) { return response.status(400).send({ error: 'Club not found' }) }
+
+      await UsersRepository.update(userDB.id, {
+        heartClub: clubeDB
+      })
+      userDB.heartClub = clubeDB
+
+      return response.json(UsersView.renderItem(userDB))
+    } catch (err) {
+      console.log(err)
+      return response.status(400).send({ error: 'Erro on choose a Club, try again ' })
     }
   }
 }
