@@ -1,14 +1,17 @@
 import { getRepository } from 'typeorm'
 import { Request, Response } from 'express'
 
+import { firstMatch, stringForDate } from 'src/functions'
+import { Atualization } from './Atualization'
+
 import Championship from '@models/Championship'
 import ClubeClassification from '@models/ClubeClassification'
 import Match from '@models/Match'
+import Clube from '@models/Clube'
 
 import standingsView from '@views/standings_view'
 import rodadaView from '@views/rodada_view'
-import { firstMatch, stringForDate } from 'src/functions'
-import { Atualization } from './Atualization'
+import ClubeView from '@views/clube_view'
 
 interface DataRequestParams {
   id: number,
@@ -132,5 +135,17 @@ export default {
       }
     }
     return championshipReturn
+  },
+
+  async getClubes (request: Request, response: Response) {
+    try {
+      const ClubeRepository = getRepository(Clube)
+      const clubesDB = await ClubeRepository.find()
+
+      return response.json(ClubeView.renderMany(clubesDB))
+    } catch (e) {
+      console.log(e)
+      return response.status(400).send({ error: 'Erro on get Clubes, try again' })
+    }
   }
 }
