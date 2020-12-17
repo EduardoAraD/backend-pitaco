@@ -203,7 +203,7 @@ async function Atualization () {
     }
 
     const matchsLive = await fetchData('/soccer/matches',
-      `season_id=${championshipDB.seasonId}&date_from=${data.getFullYear()}-${data.getMonth() + 1}-${data.getDate() - 1}&date_to=${data.getFullYear()}-${data.getMonth() + 1}-${data.getDate() + 1}`)
+      `season_id=${championshipDB.seasonId}&date_from=${data.getFullYear()}-${data.getMonth() + 1}-${data.getDate() - 1}&date_to=${data.getFullYear()}-${data.getMonth() + 1}-${data.getDate() + 2}`)
     if (matchsLive.length === 0) {
       return
     }

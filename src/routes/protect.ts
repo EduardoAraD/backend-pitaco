@@ -6,21 +6,30 @@ import ChampionshipController from '@controllers/ChampionshipController'
 
 import auth from '../middlewares/auth'
 import UsersController from '@controllers/UsersController'
+import FriendController from '@controllers/FriendController'
 
 const routes = Router()
 routes.use(auth)
 
 routes.post('/init-user', UsersController.initUser)
+routes.post('/choose-club', UsersController.chooseClub)
+
+routes.post('/friend', FriendController.create)
+routes.post('/friends', FriendController.getFriends)
+routes.post('/not-friends', FriendController.getNotFriend)
 
 routes.post('/leagues', LeaguesController.index)
 routes.get('/leagues/:id', LeaguesController.show)
 routes.post('/league', LeaguesController.create)
 routes.post('/league-dono', LeaguesController.showLeagueDono)
-routes.post('/league-solicitation/:id', LeaguesController.solicitationLeague)
 routes.post('/league-pitaco', LeaguesController.leaguePitaco)
 routes.post('/league-heartClub', LeaguesController.leagueHeartClub)
 routes.post('/league-guest', LeaguesController.leagueGuestUser)
-routes.delete('/leagues/:id', LeaguesController.delete)
+routes.post('/league-delete/:id', LeaguesController.delete)
+routes.get('/league-solicitation/:id', LeaguesController.solicitationLeague)
+routes.post('/league-solicitation/:id', LeaguesController.createSolicitation)
+routes.post('/result-solicitation', LeaguesController.resultSolicitation)
+routes.post('/commom-leagues', LeaguesController.commonLeagues)
 
 routes.get('/pitacos', PitacoController.index)
 routes.post('/pitacos', PitacoController.createUpdate)
@@ -31,5 +40,6 @@ routes.get('/championship/:id/tabela/', ChampionshipController.tabela)
 routes.get('/championship/:id/rodadas', ChampionshipController.rodadas)
 routes.get('/championship/:id/rodadas/:numRodada', ChampionshipController.matchsRodada)
 routes.get('/championship/:id/currentRodada', ChampionshipController.currentRodada)
+routes.get('/championship/clubes', ChampionshipController.getClubes)
 
 export default routes
