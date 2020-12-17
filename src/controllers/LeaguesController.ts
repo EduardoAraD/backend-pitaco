@@ -74,30 +74,6 @@ export default {
     }
   },
 
-  async solicitationLeague (request: Request, response: Response) {
-    try {
-      const { id } = request.params
-      const data = { id: parseInt(id) }
-
-      const PointsRepository = getRepository(Points)
-
-      const UsersRepository = getRepository(Users)
-      const usersDB = await UsersRepository.find({ relations: ['heartClub'] })
-
-      const pointsDB = (await PointsRepository.find({ relations: ['userId', 'leagueId'] }))
-        .filter(item => item.leagueId.id === data.id && item.accept === 0)
-        .map(item => {
-          item.userId = usersDB.find(itemUser => item.userId.id === itemUser.id)
-          return item
-        }).sort((a, b) => firstPoint(a, b))
-
-      return response.send(PointView.renderMany(pointsDB))
-    } catch (e) {
-      console.log(e)
-      return response.status(400).send({ error: 'Error on Solicitation League, try again' })
-    }
-  },
-
   async leaguePitaco (request: Request, response: Response) {
     try {
       const { id } = request.body
@@ -131,24 +107,22 @@ export default {
   async leagueHeartClub (request: Request, response: Response) {
     try {
       const { id, clubeId } = request.body
-      const data = { id: parseInt(id), clube: parseInt(clubeId) }
+      const data = { id: parseInt(id, 10), clube: parseInt(clubeId, 10) }
 
       const leaguesRepository = getRepository(Leagues)
       const pointsRepository = getRepository(Points)
       const ClubeRepository = getRepository(Clube)
       const UsersRepository = getRepository(Users)
 
-      const leagueDB = (await leaguesRepository.find({ relations: ['championship'] }))
-        .filter(item => item.sistem === 1 && item.championship.id === data.id)
-
-      const leaguePitaco = leagueDB.find(item => item.name === 'Pitaco League')
+      const leaguePitaco = (await leaguesRepository.find({ relations: ['championship'] }))
+        .find(item => item.sistem === 1 && item.championship.id === data.id && item.name === 'Pitaco League')
 
       const clubeDB = await ClubeRepository.findOne({ id: data.clube })
-      const leagueClub = leagueDB.find(item => item.name === `Liga ${clubeDB.name}`)
+      if (!clubeDB) { return response.status(400).send({ error: 'Club not found' }) }
 
       const usersDB = await UsersRepository.find({ heartClub: clubeDB })
 
-      if (!leagueClub && !leaguePitaco) {
+      if (!leaguePitaco) {
         return response.status(400).send({ error: 'Not found League' })
       }
 
@@ -156,12 +130,22 @@ export default {
         relations: ['userId', 'leagueId']
       })
 
-      leagueClub.points = points.filter(point => leaguePitaco.id === point.leagueId.id)
-        .map(point => {
-          point.userId = usersDB.find(item => item.id === point.userId.id)
+      const pointsClub = points.filter(point => leaguePitaco.id === point.leagueId.id)
+        .filter(point => {
+          const pointTemp = usersDB.find(item => item.id === point.userId.id)
+          return !!pointTemp
+        }).map(point => {
           point.userId.heartClub = clubeDB
           return point
         }).sort((a, b) => firstPoint(a, b))
+
+      const leagueClub: Leagues = {
+        ...leaguePitaco,
+        name: `Liga ${clubeDB.name}`,
+        description: `Liga dos torcedores do ${clubeDB.name}`,
+        trophy: clubeDB.logo,
+        points: pointsClub
+      }
 
       return response.json(LeaguesView.render(leagueClub))
     } catch (e) {
@@ -194,7 +178,7 @@ export default {
         relations: ['userId', 'leagueId']
       })
 
-      league.points = points.filter(point => league.id === point.leagueId.id)
+      league.points = points.filter(point => league.id === point.leagueId.id && point.accept === 1)
         .sort((a, b) => firstPoint(a, b))
 
       return response.json(LeaguesView.render(league))
@@ -223,7 +207,7 @@ export default {
 
       const PointRepository = getRepository(Points)
       const pointsDB = await PointRepository.find({ relations: ['userId', 'leagueId'] })
-      const pointsOfUser = pointsDB.filter(item => item.userId.id === user.id)
+      const pointsOfUser = pointsDB.filter(item => item.userId.id === user.id && item.accept === 1)
 
       const leagueGuest = leaguesDB.filter(league => {
         for (let i = 0; i < pointsOfUser.length; i++) {
@@ -293,7 +277,7 @@ export default {
     }
   },
 
-  async delete (request: Request, response: Response) { // Pesando em colocar o email do dono tbm
+  async delete (request: Request, response: Response) {
     try {
       const { id } = request.params
       const { email } = request.body
@@ -314,6 +298,131 @@ export default {
     } catch (e) {
       console.log(e)
       return response.status(400).send({ error: 'Error in delete League, nor try again' })
+    }
+  },
+
+  async createSolicitation (request: Request, response: Response) {
+    try {
+      const { id } = request.params
+      const { email } = request.body
+      const data = { id: parseInt(id, 10), email }
+
+      const LeagueRepository = getRepository(Leagues)
+      const leagueDB = await LeagueRepository.findOne({ id: data.id })
+      if (!leagueDB) { return response.status(400).send({ error: 'League not found' }) }
+
+      const UsersRepository = getRepository(Users)
+      const userDB = await UsersRepository.findOne({ email: data.email })
+      if (!userDB) { return response.status(400).send({ error: 'User not found' }) }
+
+      const PointsRepository = getRepository(Points)
+      const pointDB = await PointsRepository.findOne({ leagueId: leagueDB, userId: userDB })
+
+      if (pointDB) { return response.status(400).send({ error: 'You have a solicitation' }) }
+
+      const dataPoint = {
+        points: '0',
+        exactScore: '0',
+        accept: 0,
+        userId: userDB,
+        leagueId: leagueDB
+      }
+
+      const pointSave = PointsRepository.create(dataPoint)
+      const pointResul = await PointsRepository.save(pointSave)
+
+      return response.json(PointView.render(pointResul))
+    } catch (e) {
+      console.log(e)
+      return response.status(400).send({ error: 'Error in result Solicitation, try again' })
+    }
+  },
+
+  async solicitationLeague (request: Request, response: Response) {
+    try {
+      const { id } = request.params
+      const data = { id: parseInt(id) }
+
+      const PointsRepository = getRepository(Points)
+
+      const UsersRepository = getRepository(Users)
+      const usersDB = await UsersRepository.find({ relations: ['heartClub'] })
+
+      const pointsDB = (await PointsRepository.find({ relations: ['userId', 'leagueId'] }))
+        .filter(item => item.leagueId.id === data.id && item.accept === 0)
+        .map(item => {
+          item.userId = usersDB.find(itemUser => item.userId.id === itemUser.id)
+          return item
+        }).sort((a, b) => firstPoint(a, b))
+
+      return response.send(PointView.renderMany(pointsDB))
+    } catch (e) {
+      console.log(e)
+      return response.status(400).send({ error: 'Error on Solicitation League, try again' })
+    }
+  },
+
+  async resultSolicitation (request: Request, response: Response) {
+    try {
+      const { id, email, result } = request.body
+      const data = { id: parseInt(id, 10), email, result: result === 'true' }
+
+      const LeagueRepository = getRepository(Leagues)
+      const leagueDB = await LeagueRepository.findOne({ id: data.id })
+      if (!leagueDB) { return response.status(400).send({ error: 'League not found' }) }
+
+      const UsersRepository = getRepository(Users)
+      const userDB = await UsersRepository.findOne({ email: data.email })
+      if (!userDB) { return response.status(400).send({ error: 'User not found' }) }
+
+      const PointsRepository = getRepository(Points)
+      const pointDB = await PointsRepository.findOne({ leagueId: leagueDB, userId: userDB, accept: 0 })
+
+      if (!pointDB) { return response.status(400).send({ error: 'Solicitation not found' }) }
+
+      if (data.result) {
+        await PointsRepository.update(pointDB.id, {
+          accept: 1
+        })
+      } else {
+        await PointsRepository.delete(pointDB.id)
+      }
+
+      return response.send()
+    } catch (e) {
+      console.log(e)
+      return response.status(400).send({ error: 'Error in result Solicitation, try again' })
+    }
+  },
+
+  async commonLeagues (request: Request, response: Response) {
+    try {
+      const { email1, email2 } = request.body
+      const data = { user: email1, friend: email2 }
+
+      const PointRepository = getRepository(Points)
+      const pointsDB = await PointRepository.find({ relations: ['leagueId', 'userId'] })
+      const pointsUser = pointsDB.filter(item => item.userId.email === data.user && item.accept === 1)
+      const pointFriend = pointsDB.filter(item => item.userId.email === data.friend && item.accept === 1)
+
+      const CommomLeagues = pointsUser.filter(itemUser =>
+        !!(pointFriend.find(itemFriend =>
+          itemFriend.leagueId.id === itemUser.leagueId.id))
+      ).map(item => item.leagueId)
+
+      const leagues = []
+      const LeagueRepository = getRepository(Leagues)
+      for (let i = 0; i < CommomLeagues.length; i++) {
+        const league = CommomLeagues[i]
+        const leagueDB = await LeagueRepository.findOne({ id: league.id }, { relations: ['dono'] })
+        leagueDB.points = []
+        leagues.push(leagueDB)
+      }
+
+      return response.json(LeaguesView.renderMany(leagues))
+    } catch (e) {
+      console.log(e)
+      return response.status(400).send({ error: 'Erro on Commom Leagues, try again' })
     }
   }
 }
