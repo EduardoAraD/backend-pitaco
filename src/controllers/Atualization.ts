@@ -45,22 +45,24 @@ async function initAll (paramsChampionship: DataRequestChampionship) {
     const resultClubes = await fetchData('/soccer/teams', `country_id=${myLeagueFilter.country_id}`)
 
     for (let i = 0; i < resultClubes.length; i++) {
-      const name = resultClubes[i].name.slice(-3).slice(0, 1) === ' ' ? resultClubes[i].name.slice(0, -3) : resultClubes[i].name
-      const dataClube = {
-        name,
-        shortCode: resultClubes[i].short_code,
-        clubeIdApi: parseInt(resultClubes[i].team_id),
-        logo: resultClubes[i].logo
-      } as Clube
+      if (!resultClubes[i].name.includes('(W)') && !resultClubes[i].name.includes('U20') && !resultClubes[i].name.includes('U23')) {
+        const name = resultClubes[i].name.slice(-3).slice(0, 1) === ' ' ? resultClubes[i].name.slice(0, -3) : resultClubes[i].name
+        const dataClube = {
+          name,
+          shortCode: resultClubes[i].short_code,
+          clubeIdApi: parseInt(resultClubes[i].team_id),
+          logo: resultClubes[i].logo
+        } as Clube
 
-      const clubeDB = clubesDB.find(itemClube => itemClube.clubeIdApi === dataClube.clubeIdApi)
-      if (!clubeDB) {
-        const clubeCreate = ClubeRepository.create(dataClube)
-        const clubeSave = await ClubeRepository.save(clubeCreate)
+        const clubeDB = clubesDB.find(itemClube => itemClube.clubeIdApi === dataClube.clubeIdApi)
+        if (!clubeDB) {
+          const clubeCreate = ClubeRepository.create(dataClube)
+          const clubeSave = await ClubeRepository.save(clubeCreate)
 
-        clubesSaves.push(clubeSave)
-      } else {
-        clubesSaves.push(clubeDB)
+          clubesSaves.push(clubeSave)
+        } else {
+          clubesSaves.push(clubeDB)
+        }
       }
     }
 
