@@ -232,10 +232,9 @@ export default {
   async create (request: Request, response: Response) {
     try {
       const { email, description, trophy, name, championship } = request.body
-      const data = { email, name, description, trophy, championship: parseInt(championship) } as DataRequestCreate
+      const data = { email, name, description, trophy, championship: parseInt(championship, 10) } as DataRequestCreate
 
       const usersRepository = getRepository(Users)
-
       const user = await usersRepository.findOne({ email: data.email })
       if (!user) { return response.status(400).send({ error: 'User not found' }) }
 

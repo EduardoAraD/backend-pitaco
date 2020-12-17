@@ -50,7 +50,7 @@ export class createLeague1605116102907 implements MigrationInterface {
         },
         {
           name: 'LeagueChampionship',
-          columnNames: ['donoId'],
+          columnNames: ['championshipId'],
           referencedTableName: 'championship',
           referencedColumnNames: ['id'],
           onUpdate: 'CASCADE',

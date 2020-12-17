@@ -71,9 +71,13 @@ export default {
       const user = await UsersRepository.findOne({ email: data.email }, { relations: ['friends'] })
       if (!user) { return response.status(400).send({ error: 'User not found' }) }
 
+      const FriendRepository = getRepository(Friend)
+      const friendsDB = (await FriendRepository.find({ relations: ['user', 'friend'] }))
+        .filter(item => item.user.id === user.id)
+
       const usersDB = await UsersRepository.find({ relations: ['heartClub'] })
       const listUsers = usersDB.filter(item => {
-        const friend = user.friends.find(friend => friend.friend.id === item.id)
+        const friend = friendsDB.find(friend => friend.friend.id === item.id)
         return !friend
       }).filter(item => item.id !== user.id)
 
