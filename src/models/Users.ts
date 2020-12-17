@@ -5,6 +5,7 @@ import Leagues from './Leagues'
 import Points from './Points'
 import Conquest from './Conquest'
 import Clube from './Clube'
+import Friend from './Friend'
 
 @Entity('users')
 export default class Users {
@@ -54,4 +55,14 @@ export default class Users {
     @ManyToOne(() => Clube, clube => clube.fans)
     @JoinColumn({ name: 'clubeId' })
     heartClub: Clube
+
+    @OneToMany(() => Friend, friend => friend.user, {
+      cascade: ['insert', 'update']
+    })
+    friends: Friend[]
+
+    @OneToMany(() => Friend, friend => friend.friend, {
+      cascade: ['insert', 'update']
+    })
+    serFriend: Friend[]
 }
