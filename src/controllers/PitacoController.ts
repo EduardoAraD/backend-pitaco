@@ -27,19 +27,24 @@ interface DataRequestShowUser {
 
 export default {
   async index (request: Request, response: Response) {
-    const PitacoRepository = getRepository(Pitaco)
+    try {
+      const PitacoRepository = getRepository(Pitaco)
 
-    const pitacosDB = await PitacoRepository.find({ relations: ['userId', 'matchId'] })
+      const pitacosDB = await PitacoRepository.find({ relations: ['userId', 'matchId'] })
 
-    const MatchRepository = getRepository(Match)
-    const matchs = await MatchRepository.find({ relations: ['clubeHome', 'clubeAway'] })
-    const pitacos = pitacosDB.map(pitaco => {
-      pitaco.matchId = matchs.find(match => match.id === pitaco.matchId.id)
+      const MatchRepository = getRepository(Match)
+      const matchs = await MatchRepository.find({ relations: ['clubeHome', 'clubeAway'] })
+      const pitacos = pitacosDB.map(pitaco => {
+        pitaco.matchId = matchs.find(match => match.id === pitaco.matchId.id)
 
-      return pitaco
-    })
+        return pitaco
+      })
 
-    return response.json(pitacoView.renderMany(pitacos))
+      return response.json(pitacoView.renderMany(pitacos))
+    } catch (e) {
+      console.log(e)
+      return response.status(400).send({ error: 'Error in pitaco, try again' })
+    }
   },
 
   async showUserRodada (request: Request, response: Response) {
