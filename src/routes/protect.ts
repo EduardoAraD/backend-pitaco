@@ -39,7 +39,6 @@ routes.post('/pitacos-today/user', PitacoController.showUserMatchsDay)
 routes.get('/championship/:id/tabela/', ChampionshipController.tabela)
 routes.get('/championship/:id/rodadas', ChampionshipController.rodadas)
 routes.get('/championship/:id/rodadas/:numRodada', ChampionshipController.matchsRodada)
-routes.get('/championship/:id/currentRodada', ChampionshipController.currentRodada)
 routes.get('/championship/clubes', ChampionshipController.getClubes)
 
 export default routes

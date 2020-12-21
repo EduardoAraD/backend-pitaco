@@ -20,91 +20,87 @@ interface DataRequestParams {
 
 export default {
   async tabela (request: Request, response: Response) {
-    const { id } = request.params
-    const data = { id: parseInt(id) } as DataRequestParams
+    try {
+      const { id } = request.params
+      const data = { id: parseInt(id) } as DataRequestParams
 
-    const ChampionshipRepository = getRepository(Championship)
-    const championshipDB = await ChampionshipRepository.findOne({ id: data.id })
-    if (!championshipDB) {
-      return response.status(400).json({ error: 'Championship not exist' })
-    }
+      const ChampionshipRepository = getRepository(Championship)
+      const championshipDB = await ChampionshipRepository.findOne({ id: data.id })
+      if (!championshipDB) {
+        return response.status(400).json({ error: 'Championship not exist' })
+      }
 
-    const StandingRepository = getRepository(ClubeClassification)
-    const standings = (await StandingRepository.find({ relations: ['clube', 'championshipId'] }))
-      .filter(item => item.championshipId.id === championshipDB.id)
-      .sort((a, b) => {
-        if (a.points < b.points) return 1
-        else if (a.points === b.points) {
-          if (a.wins < b.wins) return 1
-          else if (a.wins === b.wins) {
-            if (a.goalsScored - a.goalsConceded < b.goalsScored - b.goalsConceded) return 1
-            else if (a.goalsScored - a.goalsConceded === b.goalsScored - b.goalsConceded) {
-              if (a.goalsScored < b.goalsScored) return 1
-              else if (a.goalsScored === b.goalsScored) return 0
+      const StandingRepository = getRepository(ClubeClassification)
+      const standings = (await StandingRepository.find({ relations: ['clube', 'championshipId'] }))
+        .filter(item => item.championshipId.id === championshipDB.id)
+        .sort((a, b) => {
+          if (a.points < b.points) return 1
+          else if (a.points === b.points) {
+            if (a.wins < b.wins) return 1
+            else if (a.wins === b.wins) {
+              if (a.goalsScored - a.goalsConceded < b.goalsScored - b.goalsConceded) return 1
+              else if (a.goalsScored - a.goalsConceded === b.goalsScored - b.goalsConceded) {
+                if (a.goalsScored < b.goalsScored) return 1
+                else if (a.goalsScored === b.goalsScored) return 0
+              }
             }
           }
-        }
-        return -1
-      })
+          return -1
+        })
 
-    return response.json(standingsView.renderMany(standings))
+      return response.json(standingsView.renderMany(standings))
+    } catch (e) {
+      console.log(e)
+      return response.status(400).send({ error: 'Error in tabela, try again' })
+    }
   },
 
   async rodadas (request: Request, response: Response) {
-    const { id } = request.params
-    const data = { id: parseInt(id) } as DataRequestParams
+    try {
+      const { id } = request.params
+      const data = { id: parseInt(id) } as DataRequestParams
 
-    const ChampionshipRepository = getRepository(Championship)
-    const championshipDB = await ChampionshipRepository.findOne({ id: data.id }, { relations: ['rodadas'] })
-    if (!championshipDB) return response.status(400).json({ error: 'Championship not found' })
+      const ChampionshipRepository = getRepository(Championship)
+      const championshipDB = await ChampionshipRepository.findOne({ id: data.id }, { relations: ['rodadas'] })
+      if (!championshipDB) return response.status(400).json({ error: 'Championship not found' })
 
-    const MatchRepository = getRepository(Match)
-    const matchs = await MatchRepository.find({ relations: ['clubeHome', 'clubeAway', 'rodadaId'] })
-    const rodadas = championshipDB.rodadas.map(rodada => {
-      rodada.matchs = matchs.filter(match => match.rodadaId.id === rodada.id)
-        .sort((a, b) => firstMatch(a, b))
-      return rodada
-    })
+      const MatchRepository = getRepository(Match)
+      const matchs = await MatchRepository.find({ relations: ['clubeHome', 'clubeAway', 'rodadaId'] })
+      const rodadas = championshipDB.rodadas.map(rodada => {
+        rodada.matchs = matchs.filter(match => match.rodadaId.id === rodada.id)
+          .sort((a, b) => firstMatch(a, b))
+        return rodada
+      })
 
-    return response.json(rodadaView.renderMany(rodadas))
+      return response.json(rodadaView.renderMany(rodadas))
+    } catch (e) {
+      console.log(e)
+      return response.status(400).send({ error: 'Error in rodadas, try again' })
+    }
   },
 
   async matchsRodada (request: Request, response: Response) {
-    const { id, numRodada } = request.params
-    const data = { id: parseInt(id), rodadaId: parseInt(numRodada) } as DataRequestParams
+    try {
+      const { id, numRodada } = request.params
+      const data = { id: parseInt(id), rodadaId: parseInt(numRodada) } as DataRequestParams
 
-    const ChampionshipRepository = getRepository(Championship)
-    const championshipDB = await ChampionshipRepository.findOne({ id: data.id }, { relations: ['rodadas'] })
-    if (!championshipDB) return response.status(400).json({ error: 'Championship not found' })
+      const ChampionshipRepository = getRepository(Championship)
+      const championshipDB = await ChampionshipRepository.findOne({ id: data.id }, { relations: ['rodadas'] })
+      if (!championshipDB) return response.status(400).json({ error: 'Championship not found' })
 
-    const rodada = championshipDB.rodadas.find(item => item.number === data.rodadaId)
-    if (!rodada) return response.status(400).json({ error: 'Rodada not found' })
+      const rodada = championshipDB.rodadas.find(item => item.number === data.rodadaId)
+      if (!rodada) return response.status(400).json({ error: 'Rodada not found' })
 
-    const MatchRepository = getRepository(Match)
-    const matchsDB = await MatchRepository.find({ relations: ['clubeHome', 'clubeAway', 'rodadaId'] })
-    rodada.matchs = matchsDB.filter(match => match.rodadaId.id === rodada.id)
-      .sort((a, b) => firstMatch(a, b))
+      const MatchRepository = getRepository(Match)
+      const matchsDB = await MatchRepository.find({ relations: ['clubeHome', 'clubeAway', 'rodadaId'] })
+      rodada.matchs = matchsDB.filter(match => match.rodadaId.id === rodada.id)
+        .sort((a, b) => firstMatch(a, b))
 
-    return response.json(rodadaView.renderItem(rodada))
-  },
-
-  async currentRodada (request: Request, response: Response) {
-    const { id } = request.params
-    const data = { id: parseInt(id) } as DataRequestParams
-
-    const ChampionshipRepository = getRepository(Championship)
-    const championshipDB = await ChampionshipRepository.findOne({ id: data.id }, { relations: ['rodadas'] })
-    if (!championshipDB) return response.status(400).json({ error: 'Championship not found' })
-
-    const rodada = championshipDB.rodadas.find(item => item.number === championshipDB.currentRodada)
-    if (!rodada) return response.status(400).json({ error: 'Rodada not found' })
-
-    const MatchRepository = getRepository(Match)
-    const matchsDB = await MatchRepository.find({ relations: ['clubeHome', 'clubeAway', 'rodadaId'] })
-    rodada.matchs = matchsDB.filter(match => match.rodadaId.id === rodada.id)
-      .sort((a, b) => firstMatch(a, b))
-
-    return response.json(rodadaView.renderItem(rodada))
+      return response.json(rodadaView.renderItem(rodada))
+    } catch (e) {
+      console.log(e)
+      return response.status(400).send({ error: 'Error in matchs Rodada, try again' })
+    }
   },
 
   async currentChampionship () {

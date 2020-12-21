@@ -110,9 +110,9 @@ export default {
         expiresIn: '30 day'
       })
 
-      const idChampionship = (await ChampionshipController.currentChampionship()).id
+      const championshipCurrent = await ChampionshipController.currentChampionship()
 
-      return response.json(UsersView.render(token, user, idChampionship))
+      return response.json(UsersView.render(token, user, championshipCurrent.id, championshipCurrent.currentRodada))
     } catch (e) {
       console.log(e)
       return response.status(400).send({ error: 'Error on create user, try again' })
@@ -139,9 +139,9 @@ export default {
           expiresIn: '1 day'
         })
 
-        const idChampionship = (await ChampionshipController.currentChampionship()).id
+        const championshipCurrent = await ChampionshipController.currentChampionship()
 
-        return response.json(UsersView.render(token, user, idChampionship))
+        return response.json(UsersView.render(token, user, championshipCurrent.id, championshipCurrent.currentRodada))
       } else {
         return response.status(400).send({ error: 'Usuário/Senha inválidos' })
       }
@@ -242,9 +242,9 @@ export default {
       const token = jwt.sign({ ...userDB }, process.env.AUTHSECRET as string, {
         expiresIn: '1 day'
       })
-      const idChampionship = (await ChampionshipController.currentChampionship()).id
+      const championshipCurrent = await ChampionshipController.currentChampionship()
 
-      return response.json(UsersView.render(token, userDB, idChampionship))
+      return response.json(UsersView.render(token, userDB, championshipCurrent.id, championshipCurrent.currentRodada))
     } catch (err) {
       console.log(err)
       return response.status(400).send({ error: 'Erro on init User, try again ' })

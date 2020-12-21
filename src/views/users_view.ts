@@ -5,7 +5,7 @@ import conquestView from './conquest_view'
 import clubeView from './clube_view'
 
 export default {
-  render (token: string, user: User, championship: number) {
+  render (token: string, user: User, championship: number, rodada: number) {
     return {
       token: token,
       user: {
@@ -16,7 +16,8 @@ export default {
         heartClub: user.heartClub ? clubeView.renderItem(user.heartClub) : {},
         conquests: conquestView.renderMany(user.conquests)
       },
-      championship: championship
+      championship: championship,
+      rodada: rodada
     }
   },
   renderItem (user: User) {
