@@ -191,6 +191,8 @@ export default {
     for (i = 0; i < usersAll.length; i++) {
       const pitaco = await PitacoRepository.findOne({ matchId: match, userId: usersAll[i] })
       if (pitaco) {
+        const pointBefore = pitaco.point
+        const exactScoreBefore = pitaco.exactScore
         const point = definePoints(golsHome, golsAway, pitaco)
         const exactScore = point === 10 ? 1 : 0
 
@@ -200,8 +202,8 @@ export default {
         let j = 0
         for (j = 0; j < pointsOfUser.length; j++) {
           await PointsRepository.update(pointsOfUser[j].id, {
-            points: pointsOfUser[j].points + point,
-            exactScore: pointsOfUser[j].exactScore + exactScore
+            points: pointsOfUser[j].points + (point - pointBefore),
+            exactScore: pointsOfUser[j].exactScore + (exactScore - exactScoreBefore)
           })
         }
       }
