@@ -30,9 +30,6 @@ export default class Match {
     @Column()
     golsAway: number
 
-    @Column()
-    finishPitaco: number
-
     @ManyToOne(() => Rodada, rodada => rodada.matchs)
     @JoinColumn({ name: 'rodadaId' })
     rodadaId: Rodada

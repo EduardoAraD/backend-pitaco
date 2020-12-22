@@ -11,7 +11,6 @@ export default {
       date: match.date,
       hour: match.hour,
       matchIdApi: match.matchIdApi,
-      finishPitaco: match.finishPitaco,
       golsHome: match.golsHome,
       golsAway: match.golsAway,
       clubeHome: clubeView.renderItem(match.clubeHome),

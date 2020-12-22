@@ -42,10 +42,6 @@ export class createMatch1605892820531 implements MigrationInterface {
           type: 'integer'
         },
         {
-          name: 'finishPitaco',
-          type: 'integer'
-        },
-        {
           name: 'rodadaId',
           type: 'integer'
         },
