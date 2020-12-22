@@ -107,7 +107,7 @@ export default {
       await UsersRepository.save(user)
 
       const token = jwt.sign({ ...user }, process.env.AUTHSECRET as string, {
-        expiresIn: '30 day'
+        expiresIn: '7 day'
       })
 
       const championshipCurrent = await ChampionshipController.currentChampionship()
@@ -136,7 +136,7 @@ export default {
 
       if (user && bcrypt.compareSync(data.password, user.password)) {
         const token = jwt.sign({ ...user }, process.env.AUTHSECRET as string, {
-          expiresIn: '1 day'
+          expiresIn: '7 day'
         })
 
         const championshipCurrent = await ChampionshipController.currentChampionship()
@@ -240,7 +240,7 @@ export default {
       if (!userDB) return response.status(400).send('User not found')
 
       const token = jwt.sign({ ...userDB }, process.env.AUTHSECRET as string, {
-        expiresIn: '1 day'
+        expiresIn: '7 day'
       })
       const championshipCurrent = await ChampionshipController.currentChampionship()
 
