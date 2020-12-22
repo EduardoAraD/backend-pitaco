@@ -46,6 +46,10 @@ export class createClubeClassification1605894318241 implements MigrationInterfac
           type: 'integer'
         },
         {
+          name: 'status',
+          type: 'varchar'
+        },
+        {
           name: 'clubeId',
           type: 'integer'
         }

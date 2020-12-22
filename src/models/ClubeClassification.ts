@@ -29,6 +29,9 @@ export default class ClubeClassification {
     @Column()
     utilization: number
 
+    @Column()
+    status: string
+
     @ManyToOne(() => Championship, championship => championship.standings)
     @JoinColumn({ name: 'championshipId' })
     championshipId: Championship

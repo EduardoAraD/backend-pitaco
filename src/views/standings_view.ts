@@ -15,7 +15,8 @@ export default {
       golsScore: clube.goalsScored,
       golsConceded: clube.goalsConceded,
       golsDiff: clube.goalsScored - clube.goalsConceded,
-      porcentage: clube.utilization
+      porcentage: clube.utilization,
+      status: clube.status
     }
   },
 
