@@ -2,6 +2,7 @@ import Leagues from '@models/Leagues'
 
 import usersView from './users_view'
 import pointsView from './points_view'
+import Points from '@models/Points'
 
 export default {
   render (league: Leagues) {
@@ -12,6 +13,13 @@ export default {
       trophy: league.trophy,
       dono: league.dono ? usersView.renderItem(league.dono) : {},
       points: pointsView.renderMany(league.points)
+    }
+  },
+  renderPoint (league: Leagues, position: number, point: Points) {
+    return {
+      league: this.render(league),
+      position,
+      point: pointsView.render(point)
     }
   },
   renderMany (leagues: Leagues[]) {

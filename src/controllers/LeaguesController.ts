@@ -45,6 +45,35 @@ export default {
     }
   },
 
+  async indexPage (request: Request, response: Response) {
+    try {
+      const { championship, page, limit, filter } = request.body
+      const data = { id: parseInt(championship, 10), page: parseInt(page, 10), limit: parseInt(limit, 10), filter }
+
+      const leaguesRepository = getRepository(Leagues)
+
+      const leagues = (await leaguesRepository.find({
+        relations: ['dono', 'championship']
+      })).filter(item => item.sistem === 0 && item.championship.id === data.id &&
+        item.name.toLocaleLowerCase().includes(data.filter.toLocaleLowerCase()))
+        .map(item => { item.points = []; return item })
+
+      const totalLeague = leagues.length
+      const leaguesResp = leagues.splice(data.limit * (data.page - 1), data.limit)
+
+      return response.json({
+        limit: data.limit,
+        page: data.page,
+        filter: data.filter,
+        leagues: LeaguesView.renderMany(leaguesResp),
+        total: totalLeague
+      })
+    } catch (e) {
+      console.log(e)
+      return response.status(400).send({ error: 'Error on View Leagues, try again' })
+    }
+  },
+
   async show (request: Request, response: Response) {
     try {
       const { id } = request.params
@@ -74,11 +103,79 @@ export default {
     }
   },
 
+  async showPointsUser (request: Request, response: Response) {
+    try {
+      const { id, page, limit } = request.body
+      const data = { id: parseInt(id, 10), page: parseInt(page, 10), limit: parseInt(limit, 10) }
+
+      const PointsRepository = getRepository(Points)
+      const pointsDB = (await PointsRepository.find({
+        relations: ['userId', 'leagueId']
+      })).filter(point => data.id === point.leagueId.id && point.accept === 1)
+        .sort((a, b) => firstPoint(a, b))
+
+      const totalPoints = pointsDB.length
+      const points = pointsDB.splice(data.limit * (data.page - 1), data.limit)
+
+      return response.json({
+        limit: data.limit,
+        page: data.page,
+        points: PointView.renderMany(points),
+        total: totalPoints
+      })
+    } catch (e) {
+      console.log(e)
+      return response.status(400).send({ error: 'Error on Show Point in League, try again' })
+    }
+  },
+
+  async showPointsUserHeartClub (request: Request, response: Response) {
+    try {
+      const { id, clubeId, page, limit } = request.body
+      const data = {
+        id: parseInt(id, 10),
+        clube: parseInt(clubeId, 10),
+        page: parseInt(page, 10),
+        limit: parseInt(limit, 10)
+      }
+
+      const ClubeRepository = getRepository(Clube)
+      const clubeDB = await ClubeRepository.findOne({ id: data.clube })
+      if (!clubeDB) { return response.status(400).send({ error: 'Club not found' }) }
+
+      const UserRepository = getRepository(Users)
+      const usersDB = await UserRepository.find({ heartClub: clubeDB })
+
+      const PointsRepository = getRepository(Points)
+      const pointsDB = (await PointsRepository.find({
+        relations: ['userId', 'leagueId']
+      })).filter(point => data.id === point.leagueId.id && point.accept === 1)
+        .filter(point => {
+          const pointTemp = usersDB.find(item => item.id === point.userId.id)
+          return !!pointTemp
+        }).sort((a, b) => firstPoint(a, b))
+
+      const totalPoints = pointsDB.length
+      const points = pointsDB.splice(data.limit * (data.page - 1), data.limit)
+
+      return response.json({
+        limit: data.limit,
+        page: data.page,
+        users: PointView.renderMany(points),
+        total: totalPoints
+      })
+    } catch (e) {
+      console.log(e)
+      return response.status(400).send({ error: 'Error on Show Point in League HeartClub, try again' })
+    }
+  },
+
   async leaguePitaco (request: Request, response: Response) {
     try {
-      const { id } = request.body
-      const data = { id: parseInt(id) }
+      const { championship, email } = request.body
+      const data = { id: parseInt(championship, 10), email }
 
+      const UserRepository = getRepository(Users)
       const leaguesRepository = getRepository(Leagues)
       const pointsRepository = getRepository(Points)
 
@@ -90,14 +187,22 @@ export default {
         return response.status(400).send({ error: 'Not found League' })
       }
 
-      const points = await pointsRepository.find({
-        relations: ['userId', 'leagueId']
-      })
+      const user = await UserRepository.findOne({ email: data.email }, { relations: ['heartClub'] })
+      if (!user) {
+        return response.status(400).send({ error: 'Not found Users' })
+      }
 
-      league.points = points.filter(point => league.id === point.leagueId.id)
+      league.points = []
+
+      const points = (await pointsRepository.find({
+        relations: ['userId', 'leagueId']
+      })).filter(point => league.id === point.leagueId.id)
         .sort((a, b) => firstPoint(a, b))
 
-      return response.json(LeaguesView.render(league))
+      const point = points.find(item => item.userId.id === user.id)
+      const position = points.indexOf(point)
+
+      return response.json(LeaguesView.renderPoint(league, position, point))
     } catch (e) {
       console.log(e)
       return response.status(400).send({ error: 'Error on Pitaco League, try again' })
@@ -106,8 +211,8 @@ export default {
 
   async leagueHeartClub (request: Request, response: Response) {
     try {
-      const { id, clubeId } = request.body
-      const data = { id: parseInt(id, 10), clube: parseInt(clubeId, 10) }
+      const { championship, clubeId, email } = request.body
+      const data = { id: parseInt(championship, 10), clube: parseInt(clubeId, 10), email }
 
       const leaguesRepository = getRepository(Leagues)
       const pointsRepository = getRepository(Points)
@@ -121,6 +226,7 @@ export default {
       if (!clubeDB) { return response.status(400).send({ error: 'Club not found' }) }
 
       const usersDB = await UsersRepository.find({ heartClub: clubeDB })
+      const user = usersDB.find(item => item.email === data.email)
 
       if (!leaguePitaco) {
         return response.status(400).send({ error: 'Not found League' })
@@ -144,10 +250,13 @@ export default {
         name: `Liga ${clubeDB.name}`,
         description: `Liga dos torcedores do ${clubeDB.name}`,
         trophy: clubeDB.logo,
-        points: pointsClub
+        points: []
       }
 
-      return response.json(LeaguesView.render(leagueClub))
+      const point = pointsClub.find(item => item.userId.id === user.id)
+      const position = pointsClub.indexOf(point)
+
+      return response.json(LeaguesView.renderPoint(leagueClub, position, point))
     } catch (e) {
       console.log(e)
       return response.status(400).send({ error: 'Error on HeartClub League, try again' })
@@ -172,16 +281,18 @@ export default {
       if (!league) { return response.status(400).send({ error: 'League not found' }) }
 
       league.dono = user
+      league.points = []
 
       const pointsRepository = getRepository(Points)
-      const points = await pointsRepository.find({
+      const points = (await pointsRepository.find({
         relations: ['userId', 'leagueId']
-      })
-
-      league.points = points.filter(point => league.id === point.leagueId.id && point.accept === 1)
+      })).filter(point => league.id === point.leagueId.id && point.accept === 1)
         .sort((a, b) => firstPoint(a, b))
 
-      return response.json(LeaguesView.render(league))
+      const point = points.find(item => item.userId.id === user.id)
+      const position = points.indexOf(point)
+
+      return response.json(LeaguesView.renderPoint(league, position, point))
     } catch (e) {
       console.log(e)
       return response.status(400).send({ error: 'Error on League of Dono, try again ' })
@@ -217,12 +328,17 @@ export default {
       })
 
       const leagues = leagueGuest.map(item => {
-        item.points = pointsDB.filter(point => point.leagueId.id === item.id)
+        item.points = []
+        const points = pointsDB.filter(point => point.leagueId.id === item.id)
           .sort((a, b) => firstPoint(a, b))
-        return item
+
+        const point = points.find(item => item.userId.id === user.id)
+        const position = points.indexOf(point)
+
+        return LeaguesView.renderPoint(item, position, point)
       })
 
-      return response.json(LeaguesView.renderMany(leagues))
+      return response.json(leagues)
     } catch (e) {
       console.log(e)
       return response.status(400).send({ error: 'Error on LeagueGuest of User, try again' })
