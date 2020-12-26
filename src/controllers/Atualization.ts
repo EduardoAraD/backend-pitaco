@@ -389,8 +389,9 @@ async function getClube (idApi: number, name: string, shortCode: string, logo: s
   if (!clube) {
     clube = clubes.find(item => item.name === name && item.shortCode === shortCode)
     if (!clube) {
+      const nameFilter = name.slice(-3).slice(0, 1) === ' ' ? name.slice(0, -3) : name
       const dataClube = {
-        name,
+        name: nameFilter,
         shortCode,
         clubeIdApi: idApi,
         logo
@@ -447,8 +448,7 @@ async function getClubStanding (idApi: number, clubes: Clube[]): Promise<Clube> 
   const clube = clubes.find(item => item.clubeIdApi === idApi)
   if (!clube) {
     const clubeResult = (await fetchData(`soccer/teams/${idApi}`)) as ClubeAPI
-    const name = clubeResult.name.slice(-3).slice(0, 1) === ' ' ? clubeResult.name.slice(0, -3) : clubeResult.name
-    return getClube(idApi, name, clubeResult.short_code, clubeResult.logo, clubes)
+    return getClube(idApi, clubeResult.name, clubeResult.short_code, clubeResult.logo, clubes)
   }
   return clube
 }
