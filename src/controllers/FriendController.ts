@@ -106,7 +106,7 @@ export default {
         const friend = friendsDB.find(friend => friend.friend.id === item.id)
         return !friend
       }).filter(item => item.id !== user.id &&
-        item.name.toLocaleLowerCase().includes(filter.toLocaleLowerCase())
+        item.name.toLocaleLowerCase().includes(data.filter.toLocaleLowerCase())
       )
 
       const totalUsers = listUsers.length

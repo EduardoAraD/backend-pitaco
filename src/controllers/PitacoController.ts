@@ -201,10 +201,12 @@ export default {
 
         let j = 0
         for (j = 0; j < pointsOfUser.length; j++) {
-          await PointsRepository.update(pointsOfUser[j].id, {
-            points: pointsOfUser[j].points + (point - pointBefore),
-            exactScore: pointsOfUser[j].exactScore + (exactScore - exactScoreBefore)
-          })
+          if (pointsOfUser[i].accept === 1) {
+            await PointsRepository.update(pointsOfUser[j].id, {
+              points: pointsOfUser[j].points + (point - pointBefore),
+              exactScore: pointsOfUser[j].exactScore + (exactScore - exactScoreBefore)
+            })
+          }
         }
       }
     }
