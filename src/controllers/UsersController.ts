@@ -37,16 +37,24 @@ export default {
         confirmPassword
       } = request.body
 
-      const data = {
+      const data: DataRequestSignUp = {
         name,
         email,
         password,
         confirmPassword
-      } as DataRequestSignUp
+      }
 
       // checando dados
       if (!data.email.match(emailRegex)) {
         return response.status(400).send({ error: 'O e-mail informado não é válido' })
+      }
+
+      if (data.name.length <= 0) {
+        return response.status(400).send({ error: 'Nome não informado' })
+      }
+
+      if (data.password.length <= 7) {
+        return response.status(400).send({ error: 'Senha precisa ter no mínino 8 caracteres' })
       }
 
       const salt = bcrypt.genSaltSync()
@@ -59,9 +67,14 @@ export default {
       // checando email - DB
       const UsersRepository = getRepository(Users)
 
-      const userExisting = await UsersRepository.findOne({ email: data.email })
-      if (userExisting) {
+      const userExistingEmail = await UsersRepository.findOne({ email: data.email })
+      if (userExistingEmail) {
         return response.status(400).send({ error: 'Email já existente.' })
+      }
+
+      const userExistingName = await UsersRepository.findOne({ name: data.name })
+      if (userExistingName) {
+        return response.status(400).send({ error: 'Name já existente.' })
       }
 
       // criadno o User no DB
