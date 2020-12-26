@@ -109,12 +109,12 @@ async function initAll (paramsChampionship: DataRequestChampionship) {
       `season_id=${dataResultChampionship.seasonId}`)
 
     const standing = resultStandings.standings
-    const standingChampionship = createClubeStandings(standing, clubesSaves)
+    const standingChampionship = await createClubeStandings(standing, clubesSaves)
 
     const resultMatchs = await fetchData('/soccer/matches',
       `season_id=${dataResultChampionship.seasonId}&date_from=${dateStartChampionship.getFullYear()}-${dateStartChampionship.getMonth() + 1}-${dateStartChampionship.getDate()}`)
 
-    const { matches, currentRodada } = createRodadaMatchs(resultMatchs, clubesSaves)
+    const { matches, currentRodada } = await createRodadaMatchs(resultMatchs, clubesSaves)
 
     const resultRodada = await fetchData('/soccer/rounds', `season_id=${dataResultChampionship.seasonId}`)
     const rodadasChampionship = createRodada(resultRodada, matches)
@@ -171,7 +171,7 @@ async function Atualization () {
 
     const ClubeRepository = getRepository(Clube)
     const clubesDB = await ClubeRepository.find()
-    const { matches } = createRodadaMatchs(matchsLive, clubesDB)
+    const { matches } = await createRodadaMatchs(matchsLive, clubesDB)
 
     const MatchRepository = getRepository(Match)
     const RodadaRepository = getRepository(Rodada)
@@ -216,7 +216,7 @@ async function Atualization () {
       const resultStandings = await fetchData('/soccer/standings', `season_id=${dataResultChampionship.seasonId}`)
 
       const standingData = resultStandings.standings
-      const standing = createClubeStandings(standingData, clubesDB)
+      const standing = await createClubeStandings(standingData, clubesDB)
 
       for (let i = 0; i < standing.length; i++) {
         const itemStanding = standing[i]
@@ -257,7 +257,7 @@ async function atualizationMatchChampionship (championship: Championship) {
   const resultMatchs = await fetchData('/soccer/matches',
       `season_id=${championship.seasonId}&date_from=${currentDate.getFullYear()}-${currentDate.getMonth() + 1}-${currentDate.getDate()}`)
 
-  const { matches } = createRodadaMatchs(resultMatchs, clubesDB)
+  const { matches } = await createRodadaMatchs(resultMatchs, clubesDB)
 
   for (let i = 0; i < matches.length; i++) {
     const matchData = matches[i].match
@@ -335,8 +335,8 @@ function createRodada (resultRodada: RodadaAPI[], matches: DataRodadaMatch[]): R
   return rodadasChampionship
 }
 
-function createRodadaMatchs (matchsAPI: MatchAPI[], clubesDB: Clube[]):
-  { matches: DataRodadaMatch[], currentRodada: number } {
+async function createRodadaMatchs (matchsAPI: MatchAPI[], clubesDB: Clube[]):
+  Promise<{ matches: DataRodadaMatch[], currentRodada: number }> {
   const matchsRodadaSaves: DataRodadaMatch[] = []
 
   const currentDate = new Date()
@@ -357,8 +357,12 @@ function createRodadaMatchs (matchsAPI: MatchAPI[], clubesDB: Clube[]):
       matchIdApi: itemResultMatch.match_id,
       golsHome: itemResultMatch.stats.home_score,
       golsAway: itemResultMatch.stats.away_score,
-      clubeHome: clubesDB.find(clube => clube.clubeIdApi === parseInt(itemResultMatch.home_team.team_id, 10)),
-      clubeAway: clubesDB.find(clube => clube.clubeIdApi === parseInt(itemResultMatch.away_team.team_id, 10))
+      clubeHome: await getClube(parseInt(itemResultMatch.home_team.team_id, 10),
+        itemResultMatch.home_team.name, itemResultMatch.home_team.short_code,
+        itemResultMatch.home_team.logo, clubesDB),
+      clubeAway: await getClube(parseInt(itemResultMatch.away_team.team_id, 10),
+        itemResultMatch.away_team.name, itemResultMatch.away_team.short_code,
+        itemResultMatch.away_team.logo, clubesDB)
     } as Match
 
     const dataRodadaMatch = {
@@ -380,6 +384,28 @@ function createRodadaMatchs (matchsAPI: MatchAPI[], clubesDB: Clube[]):
   return { matches: matchsRodadaSaves, currentRodada }
 }
 
+async function getClube (idApi: number, name: string, shortCode: string, logo: string, clubes: Clube[]): Promise<Clube> {
+  let clube = clubes.find(item => item.clubeIdApi === idApi)
+  if (!clube) {
+    clube = clubes.find(item => item.name === name && item.shortCode === shortCode)
+    if (!clube) {
+      const dataClube = {
+        name,
+        shortCode,
+        clubeIdApi: idApi,
+        logo
+      } as Clube
+
+      const ClubeRepository = getRepository(Clube)
+      const clubeCreate = ClubeRepository.create(dataClube)
+      const clubeSave = await ClubeRepository.save(clubeCreate)
+
+      return clubeSave
+    }
+  }
+  return clube
+}
+
 function defineStatusMatch (status: string, htScore: string, ftScore: string, date: Date) {
   if (status === 'finished') {
     if (htScore === null || ftScore === null) return 'progress'
@@ -393,13 +419,13 @@ function defineStatusMatch (status: string, htScore: string, ftScore: string, da
   return 'notstarted'
 }
 
-function createClubeStandings (standing: StandingAPI[], clubesDB: Clube[]): ClubeClassification[] {
+async function createClubeStandings (standing: StandingAPI[], clubesDB: Clube[]): Promise<ClubeClassification[]> {
   const standingSaves: ClubeClassification[] = []
 
   for (let i = 0; i < standing.length; i++) {
     const utilization = (parseInt(standing[i].overall.won) * 3 + parseInt(standing[i].overall.draw)) /
       (parseInt(standing[i].overall.games_played) * 3)
-    const clubeDB = clubesDB.find(item => item.clubeIdApi === parseInt(standing[i].team_id, 10))
+    const clubeDB = await getClubStanding(parseInt(standing[i].team_id, 10), clubesDB)
     const itemStanding = {
       points: parseInt(standing[i].points),
       clube: clubeDB,
@@ -415,6 +441,16 @@ function createClubeStandings (standing: StandingAPI[], clubesDB: Clube[]): Club
     standingSaves.push(itemStanding)
   }
   return standingSaves
+}
+
+async function getClubStanding (idApi: number, clubes: Clube[]): Promise<Clube> {
+  const clube = clubes.find(item => item.clubeIdApi === idApi)
+  if (!clube) {
+    const clubeResult = (await fetchData(`soccer/teams/${idApi}`)) as ClubeAPI
+    const name = clubeResult.name.slice(-3).slice(0, 1) === ' ' ? clubeResult.name.slice(0, -3) : clubeResult.name
+    return getClube(idApi, name, clubeResult.short_code, clubeResult.logo, clubes)
+  }
+  return clube
 }
 
 function defineStatusItemStanding (status: string, result: string) {
@@ -446,10 +482,13 @@ async function createClube (resultClubes: ClubeAPI[]): Promise<Clube[]> {
 
       const clubeDB = clubesDB.find(itemClube => itemClube.clubeIdApi === dataClube.clubeIdApi)
       if (!clubeDB) {
-        const clubeCreate = ClubeRepository.create(dataClube)
-        const clubeSave = await ClubeRepository.save(clubeCreate)
+        const clubeExist = clubesSaves.find(itemClube => itemClube.name === dataClube.name && itemClube.shortCode === dataClube.shortCode)
+        if (!clubeExist) {
+          const clubeCreate = ClubeRepository.create(dataClube)
+          const clubeSave = await ClubeRepository.save(clubeCreate)
 
-        clubesSaves.push(clubeSave)
+          clubesSaves.push(clubeSave)
+        }
       } else {
         clubesSaves.push(clubeDB)
       }
