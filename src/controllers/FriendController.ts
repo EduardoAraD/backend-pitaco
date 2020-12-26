@@ -86,5 +86,42 @@ export default {
       console.log(e)
       return response.status(400).send({ error: 'Error in not friend, try again' })
     }
+  },
+
+  async getNotFriendPaginate (request: Request, response: Response) {
+    try {
+      const { email, page, limit, filter } = request.body
+      const data = { email, page: parseInt(page, 10), limit: parseInt(limit, 10), filter }
+
+      const UsersRepository = getRepository(Users)
+      const user = await UsersRepository.findOne({ email: data.email }, { relations: ['friends'] })
+      if (!user) { return response.status(400).send({ error: 'User not found' }) }
+
+      const FriendRepository = getRepository(Friend)
+      const friendsDB = (await FriendRepository.find({ relations: ['user', 'friend'] }))
+        .filter(item => item.user.id === user.id)
+
+      const usersDB = await UsersRepository.find({ relations: ['heartClub'] })
+      const listUsers = usersDB.filter(item => {
+        const friend = friendsDB.find(friend => friend.friend.id === item.id)
+        return !friend
+      }).filter(item => item.id !== user.id &&
+        item.name.toLocaleLowerCase().includes(filter.toLocaleLowerCase())
+      )
+
+      const totalUsers = listUsers.length
+      const usersResp = listUsers.splice(data.limit * (data.page - 1), data.limit)
+
+      return response.json({
+        limit: data.limit,
+        page: data.page,
+        filter: data.filter,
+        users: UsersView.renderMany(usersResp),
+        total: totalUsers
+      })
+    } catch (e) {
+      console.log(e)
+      return response.status(400).send({ error: 'Error in not friend, try again' })
+    }
   }
 }

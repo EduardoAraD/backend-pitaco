@@ -17,6 +17,7 @@ routes.post('/choose-club', UsersController.chooseClub)
 routes.post('/friend', FriendController.create)
 routes.post('/friends', FriendController.getFriends)
 routes.post('/not-friends', FriendController.getNotFriend)
+routes.post('/not-friends-page', FriendController.getNotFriendPaginate)
 
 routes.post('/leagues', LeaguesController.index)
 routes.get('/leagues/:id', LeaguesController.show)
