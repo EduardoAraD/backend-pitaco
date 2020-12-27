@@ -161,7 +161,7 @@ export default {
       return response.json({
         limit: data.limit,
         page: data.page,
-        users: PointView.renderMany(points),
+        points: PointView.renderMany(points),
         total: totalPoints
       })
     } catch (e) {

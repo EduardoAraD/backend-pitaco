@@ -18,7 +18,7 @@ export default {
   renderPoint (league: Leagues, position: number, point: Points) {
     return {
       league: this.render(league),
-      position,
+      position: position + 1,
       point: pointsView.render(point)
     }
   },
