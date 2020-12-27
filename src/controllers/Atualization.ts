@@ -387,9 +387,9 @@ async function createRodadaMatchs (matchsAPI: MatchAPI[], clubesDB: Clube[]):
 async function getClube (idApi: number, name: string, shortCode: string, logo: string, clubes: Clube[]): Promise<Clube> {
   let clube = clubes.find(item => item.clubeIdApi === idApi)
   if (!clube) {
-    clube = clubes.find(item => item.name === name && item.shortCode === shortCode)
+    const nameFilter = name.slice(-3).slice(0, 1) === ' ' ? name.slice(0, -3) : name
+    clube = clubes.find(item => item.name === nameFilter && item.shortCode === shortCode)
     if (!clube) {
-      const nameFilter = name.slice(-3).slice(0, 1) === ' ' ? name.slice(0, -3) : name
       const dataClube = {
         name: nameFilter,
         shortCode,
