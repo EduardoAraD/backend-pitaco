@@ -4,12 +4,11 @@ import { Request, Response } from 'express'
 import Leagues from '@models/Leagues'
 import Points from '@models/Points'
 import Users from '@models/Users'
+import Clube from '@models/Clube'
+import Championship from '@models/Championship'
 
 import LeaguesView from '@views/leagues_view'
 import PointView from '@views/points_view'
-
-import Clube from '@models/Clube'
-import Championship from '@models/Championship'
 
 import { firstPoint } from 'src/functions'
 

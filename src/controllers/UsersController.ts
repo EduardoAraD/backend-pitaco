@@ -8,10 +8,11 @@ import { transport as mailer } from '../config/mailer'
 
 import Users from '@models/Users'
 import Leagues from '@models/Leagues'
+import Clube from '@models/Clube'
 
 import UsersView from '@views/users_view'
+
 import ChampionshipController from './ChampionshipController'
-import Clube from '@models/Clube'
 
 const emailRegex = /\S+@\S+\.\S+/
 
@@ -42,6 +43,11 @@ export default {
         email,
         password,
         confirmPassword
+      }
+
+      const championshipCurrent = await ChampionshipController.currentChampionship()
+      if (!championshipCurrent) {
+        return response.status(400).send({ error: 'Esperando Atualização de Campeonato' })
       }
 
       // checando dados
@@ -123,8 +129,6 @@ export default {
         expiresIn: '7 day'
       })
 
-      const championshipCurrent = await ChampionshipController.currentChampionship()
-
       return response.json(UsersView.render(token, user, championshipCurrent.id, championshipCurrent.currentRodada))
     } catch (e) {
       console.log(e)
@@ -141,6 +145,11 @@ export default {
       if (email === '') return response.status(400).send({ error: 'Email não fornecido' })
       if (password === '') return response.status(400).send({ error: 'Senha não fornecida' })
 
+      const championshipCurrent = await ChampionshipController.currentChampionship()
+      if (!championshipCurrent) {
+        return response.status(400).send({ error: 'Esperando Atualização de Campeonato' })
+      }
+
       const data = { email, password } as DataRequestSignIn
 
       const usersRepository = getRepository(Users)
@@ -151,8 +160,6 @@ export default {
         const token = jwt.sign({ ...user }, process.env.AUTHSECRET as string, {
           expiresIn: '7 day'
         })
-
-        const championshipCurrent = await ChampionshipController.currentChampionship()
 
         return response.json(UsersView.render(token, user, championshipCurrent.id, championshipCurrent.currentRodada))
       } else {
@@ -252,10 +259,14 @@ export default {
       const userDB = await UsersRepository.findOne({ email: data.email }, { relations: ['points', 'heartClub', 'conquests'] })
       if (!userDB) return response.status(400).send('User not found')
 
+      const championshipCurrent = await ChampionshipController.currentChampionship()
+      if (!championshipCurrent) {
+        return response.status(400).send({ error: 'Esperando Atualização de Campeonato' })
+      }
+
       const token = jwt.sign({ ...userDB }, process.env.AUTHSECRET as string, {
         expiresIn: '7 day'
       })
-      const championshipCurrent = await ChampionshipController.currentChampionship()
 
       return response.json(UsersView.render(token, userDB, championshipCurrent.id, championshipCurrent.currentRodada))
     } catch (err) {

@@ -5,10 +5,11 @@ import Pitaco from '@models/Pitaco'
 import Users from '@models/Users'
 import Points from '@models/Points'
 import Match from '@models/Match'
+import Championship from '@models/Championship'
 
 import pitacoView from '@views/pitaco_view'
 import matchView from '@views/match_view'
-import Championship from '@models/Championship'
+
 import { firstMatch, stringForDate } from 'src/functions'
 
 interface DataRequestCreate {
