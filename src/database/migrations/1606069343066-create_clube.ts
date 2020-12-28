@@ -17,16 +17,16 @@ export class createClube1606069343066 implements MigrationInterface {
           type: 'varchar'
         },
         {
+          name: 'nameComplete',
+          type: 'varchar'
+        },
+        {
           name: 'shortCode',
           type: 'varchar'
         },
         {
           name: 'logo',
           type: 'varchar'
-        },
-        {
-          name: 'clubeIdApi',
-          type: 'integer'
         }
       ]
     }))

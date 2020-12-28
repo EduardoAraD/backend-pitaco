@@ -3,6 +3,7 @@ import { Entity, Column, PrimaryGeneratedColumn, OneToOne, OneToMany } from 'typ
 import ClubeClassification from './ClubeClassification'
 import Match from './Match'
 import Users from './Users'
+import IdApiClube from './IdApiClube'
 
 @Entity('clube')
 export default class Clube {
@@ -13,13 +14,18 @@ export default class Clube {
     name: string
 
     @Column()
+    nameComplete: string
+
+    @Column()
     shortCode: string
 
     @Column()
     logo: string
 
-    @Column()
-    clubeIdApi: number
+    @OneToMany(() => IdApiClube, idApiClube => idApiClube.clube, {
+      cascade: ['insert', 'update']
+    })
+    idsApiClube: IdApiClube[]
 
     @OneToOne(() => ClubeClassification, classification => classification.clube, {
       cascade: ['insert', 'update']
