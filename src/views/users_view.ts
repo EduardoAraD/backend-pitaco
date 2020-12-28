@@ -12,7 +12,7 @@ export default {
         name: user.name,
         email: user.email,
         avatar: user.avatar,
-        points: pointsView.renderManyNotUser(user.points),
+        points: pointsView.renderManyNotUser(user.points || []),
         heartClub: user.heartClub ? clubeView.renderItem(user.heartClub) : {},
         conquests: conquestView.renderMany(user.conquests || [])
       },
