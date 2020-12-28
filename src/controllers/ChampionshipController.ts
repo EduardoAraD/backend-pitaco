@@ -105,10 +105,9 @@ export default {
 
   async currentChampionship () {
     const ChampionshipRepository = getRepository(Championship)
-    let championshipsDB: Championship[] = await ChampionshipRepository.find()
+    const championshipsDB: Championship[] = await ChampionshipRepository.find()
     if (championshipsDB.length === 0) {
-      await Atualization()
-      championshipsDB = await ChampionshipRepository.find()
+      return null
     }
 
     const currentDate = new Date()
@@ -142,6 +141,20 @@ export default {
     } catch (e) {
       console.log(e)
       return response.status(400).send({ error: 'Erro on get Clubes, try again' })
+    }
+  },
+
+  async AtualizationSportApi (request: Request, response: Response) {
+    try {
+      const { cod } = request.params
+      if (cod === 'SKJASD') {
+        await Atualization()
+        return response.json({ message: 'Atualizado' })
+      }
+      return response.send()
+    } catch (e) {
+      console.log(e)
+      return response.status(400).send({ error: 'Erro on Atualization of API, try again' })
     }
   }
 }
