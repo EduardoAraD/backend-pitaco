@@ -4,6 +4,6 @@ import mail from './mail'
 
 export const transport = nodemailer.createTransport({
   service: 'gmail',
-  host: 'smtp.gmail.com',
+  host: mail.host,
   auth: { user: mail.user, pass: mail.pass }
 })

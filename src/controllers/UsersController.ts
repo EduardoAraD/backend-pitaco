@@ -50,13 +50,13 @@ export default {
         return response.status(400).send({ error: 'Esperando Atualização de Campeonato' })
       }
 
+      if (data.name.length <= 0) {
+        return response.status(400).send({ error: 'Nickname não informado' })
+      }
+
       // checando dados
       if (!data.email.match(emailRegex)) {
         return response.status(400).send({ error: 'O e-mail informado não é válido' })
-      }
-
-      if (data.name.length <= 0) {
-        return response.status(400).send({ error: 'Nome não informado' })
       }
 
       if (data.password.length <= 7) {
@@ -232,6 +232,10 @@ export default {
 
       const salt = bcrypt.genSaltSync()
       const passwordHash = bcrypt.hashSync(password, salt)
+
+      if (password.length <= 7) {
+        return response.status(400).send({ error: 'Senha precisa ter no mínino 8 caracteres' })
+      }
 
       if (!bcrypt.compareSync(confirmPassword, passwordHash)) {
         return response.status(400).send({ error: 'Passwords do not match' })

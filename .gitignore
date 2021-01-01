@@ -4,4 +4,3 @@ dist
 yarn.lock
 .env
 src/database/database.sqlite
-src/config/mail.ts
