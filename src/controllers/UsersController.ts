@@ -3,8 +3,7 @@ import { Request, Response } from 'express'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import crypto from 'crypto'
-
-import { transport as mailer } from '../config/mailer'
+import nodemailer from 'nodemailer'
 
 import Users from '@models/Users'
 import Leagues from '@models/Leagues'
@@ -175,6 +174,7 @@ export default {
     const { email } = request.body
 
     try {
+      if (email.length === 0) return response.status(400).send({ error: 'E-mail não informado.' })
       const usersRepository = getRepository(Users)
 
       const user = await usersRepository.findOne({ email })
@@ -189,6 +189,12 @@ export default {
       await usersRepository.update(user.id, {
         codeResetPassword: code,
         codeResetExpires: now.toString()
+      })
+
+      const mailer = nodemailer.createTransport({
+        service: 'gmail',
+        host: 'smtp.gmail.com',
+        auth: { user: process.env.EMAIL, pass: process.env.PASS }
       })
 
       mailer.sendMail({
@@ -217,6 +223,11 @@ export default {
     const { code, password, confirmPassword } = request.body
 
     try {
+      if (code.length === 0) return response.status(400).send({ error: 'Code não fornecido' })
+      if (password.length === 0) return response.status(400).send({ error: 'Senha não fornecido' })
+      if (confirmPassword.length === 0) {
+        return response.status(400).send({ error: 'Confirmação de senha não fornecido' })
+      }
       const usersRepository = getRepository(Users)
 
       const user = await usersRepository.findOne({ codeResetPassword: code })
