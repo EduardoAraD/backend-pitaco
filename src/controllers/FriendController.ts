@@ -8,14 +8,19 @@ import Conquest from '@models/Conquest'
 import UsersView from '@views/users_view'
 import FriendView from '@views/friend_view'
 
+import { MessageError } from '../functions'
+
 export default {
   async getFriends (request: Request, response: Response) {
     try {
       const { email } = request.body
-      const data = { email }
+      const data = { email: email || '' }
+
+      if (data.email === '') return response.status(400).send({ error: MessageError.EMAILNOTINFORMED })
+
       const UsersRepository = getRepository(Users)
       const userDB = await UsersRepository.findOne({ email: data.email }, { relations: ['friends'] })
-      if (!userDB) { return response.status(400).send({ error: 'User not found' }) }
+      if (!userDB) { return response.status(400).send({ error: MessageError.USERNOTFOUND }) }
 
       const ConquestRepository = getRepository(Conquest)
       const usersDB = await UsersRepository.find({ relations: ['heartClub', 'conquests', 'serFriend'] })
@@ -30,27 +35,42 @@ export default {
       return response.json(UsersView.renderMany(friendsUser))
     } catch (e) {
       console.log(e)
-      return response.status(400).send({ error: 'Error in Get Friend, try again' })
+      return response.status(400).send({ error: 'Error in get Friend, try again.' })
     }
   },
 
   async create (request: Request, response: Response) {
     try {
       const { emailUser, emailFriend } = request.body
-      const data = { user: emailUser, friend: emailFriend }
+      const data = { user: emailUser || '', friend: emailFriend || '' }
+
+      if (data.user === '') {
+        return response.status(400).send({ error: MessageError.EMAILNOTINFORMED })
+      }
+      if (data.friend === '') {
+        return response.status(400).send({ error: MessageError.EMAILFRIENDNOTINFORMED })
+      }
+      if (data.user === data.friend) {
+        return response.status(400).send({ error: MessageError.USERFRIENDEQUAL })
+      }
 
       const UsersRepository = getRepository(Users)
       const user = await UsersRepository.findOne({ email: data.user }, { relations: ['heartClub', 'conquests'] })
-      if (!user) { return response.status(400).send({ error: 'User not found' }) }
+      if (!user) { return response.status(400).send({ error: MessageError.USERNOTFOUND }) }
+
       const friend = await UsersRepository.findOne({ email: data.friend }, { relations: ['heartClub', 'conquests'] })
-      if (!friend) { return response.status(400).send({ error: 'Friend nor found' }) }
+      if (!friend) { return response.status(400).send({ error: MessageError.FRIENDNOTFOUND }) }
+
+      const FriendRepository = getRepository(Friend)
+      const friendExisting = await FriendRepository.findOne({ user, friend })
+      if (friendExisting) {
+        return response.status(400).send({ error: MessageError.FRIENDEXISTING })
+      }
 
       const dataFriend = {
         user,
         friend
       }
-
-      const FriendRepository = getRepository(Friend)
 
       const friendSave = FriendRepository.create(dataFriend)
       const friendResult = await FriendRepository.save(friendSave)
@@ -58,18 +78,22 @@ export default {
       return response.json(FriendView.render(friendResult))
     } catch (e) {
       console.log(e)
-      return response.status(400).send({ error: 'Error in create friend, try again' })
+      return response.status(400).send({ error: 'Error in create friend, try again.' })
     }
   },
 
   async getNotFriend (request: Request, response: Response) {
     try {
       const { email } = request.body
-      const data = { email }
+      const data = { email: email || '' }
+
+      if (data.email === '') {
+        return response.status(400).send({ error: MessageError.EMAILNOTINFORMED })
+      }
 
       const UsersRepository = getRepository(Users)
       const user = await UsersRepository.findOne({ email: data.email }, { relations: ['friends'] })
-      if (!user) { return response.status(400).send({ error: 'User not found' }) }
+      if (!user) { return response.status(400).send({ error: MessageError.USERNOTFOUND }) }
 
       const FriendRepository = getRepository(Friend)
       const friendsDB = (await FriendRepository.find({ relations: ['user', 'friend'] }))
@@ -84,18 +108,25 @@ export default {
       return response.json(UsersView.renderMany(listUsers))
     } catch (e) {
       console.log(e)
-      return response.status(400).send({ error: 'Error in not friend, try again' })
+      return response.status(400).send({ error: 'Error in not friend, try again.' })
     }
   },
 
   async getNotFriendPaginate (request: Request, response: Response) {
     try {
       const { email, page, limit, filter } = request.body
-      const data = { email, page: parseInt(page, 10), limit: parseInt(limit, 10), filter }
+      const data = {
+        email: email || '',
+        page: parseInt(page, 10) || 1,
+        limit: parseInt(limit, 10) || 0,
+        filter: filter || ''
+      }
+
+      if (data.email === '') return response.status(400).send({ error: MessageError.EMAILNOTINFORMED })
 
       const UsersRepository = getRepository(Users)
       const user = await UsersRepository.findOne({ email: data.email }, { relations: ['friends'] })
-      if (!user) { return response.status(400).send({ error: 'User not found' }) }
+      if (!user) { return response.status(400).send({ error: MessageError.USERNOTFOUND }) }
 
       const FriendRepository = getRepository(Friend)
       const friendsDB = (await FriendRepository.find({ relations: ['user', 'friend'] }))
@@ -106,7 +137,7 @@ export default {
         const friend = friendsDB.find(friend => friend.friend.id === item.id)
         return !friend
       }).filter(item => item.id !== user.id &&
-        item.name.toLocaleLowerCase().includes(data.filter.toLocaleLowerCase())
+        item.name.includes(data.filter)
       )
 
       const totalUsers = listUsers.length
@@ -121,7 +152,7 @@ export default {
       })
     } catch (e) {
       console.log(e)
-      return response.status(400).send({ error: 'Error in not friend, try again' })
+      return response.status(400).send({ error: 'Error in not friend, try again.' })
     }
   }
 }
