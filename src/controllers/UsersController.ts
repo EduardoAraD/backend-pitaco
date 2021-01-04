@@ -11,6 +11,8 @@ import Clube from '@models/Clube'
 
 import UsersView from '@views/users_view'
 
+import { MessageError } from '../functions'
+
 import ChampionshipController from './ChampionshipController'
 
 const emailRegex = /\S+@\S+\.\S+/
@@ -46,40 +48,40 @@ export default {
 
       const championshipCurrent = await ChampionshipController.currentChampionship()
       if (!championshipCurrent) {
-        return response.status(400).send({ error: 'Esperando Atualização de Campeonato' })
+        return response.status(400).send({ error: MessageError.ATUALIZATION })
       }
 
       if (data.name.length <= 0) {
-        return response.status(400).send({ error: 'Nickname não informado' })
+        return response.status(400).send({ error: MessageError.NICKNAMENOTINFORMED })
       }
 
       // checando dados
       if (!data.email.match(emailRegex)) {
-        return response.status(400).send({ error: 'O e-mail informado não é válido' })
+        return response.status(400).send({ error: MessageError.EMAILINVALID })
       }
 
       if (data.password.length <= 7) {
-        return response.status(400).send({ error: 'Senha precisa ter no mínino 8 caracteres' })
+        return response.status(400).send({ error: MessageError.PASSWORDMINCARACTER })
       }
 
       const salt = bcrypt.genSaltSync()
       const passwordHash = bcrypt.hashSync(data.password, salt)
 
       if (!bcrypt.compareSync(data.confirmPassword, passwordHash)) {
-        return response.status(400).send({ error: 'Senhas não conferem.' })
+        return response.status(400).send({ error: MessageError.PASSWORDNOTCONFER })
       }
 
       // checando email - DB
       const UsersRepository = getRepository(Users)
 
-      const userExistingEmail = await UsersRepository.findOne({ email: data.email })
-      if (userExistingEmail) {
-        return response.status(400).send({ error: 'Email já existente.' })
-      }
-
       const userExistingName = await UsersRepository.findOne({ name: data.name })
       if (userExistingName) {
-        return response.status(400).send({ error: 'Name já existente.' })
+        return response.status(400).send({ error: MessageError.NICKNAMEEXISTING })
+      }
+
+      const userExistingEmail = await UsersRepository.findOne({ email: data.email })
+      if (userExistingEmail) {
+        return response.status(400).send({ error: MessageError.EMAILEXISTING })
       }
 
       // criadno o User no DB
@@ -141,12 +143,12 @@ export default {
         email,
         password
       } = request.body
-      if (email === '') return response.status(400).send({ error: 'Email não fornecido' })
-      if (password === '') return response.status(400).send({ error: 'Senha não fornecida' })
+      if (email === '') return response.status(400).send({ error: MessageError.EMAILNOTINFORMED })
+      if (password === '') return response.status(400).send({ error: MessageError.PASSWORDNOTINFORMED })
 
       const championshipCurrent = await ChampionshipController.currentChampionship()
       if (!championshipCurrent) {
-        return response.status(400).send({ error: 'Esperando Atualização de Campeonato' })
+        return response.status(400).send({ error: MessageError.ATUALIZATION })
       }
 
       const data = { email, password } as DataRequestSignIn
@@ -162,7 +164,7 @@ export default {
 
         return response.json(UsersView.render(token, user, championshipCurrent.id, championshipCurrent.currentRodada))
       } else {
-        return response.status(400).send({ error: 'Usuário/Senha inválidos' })
+        return response.status(400).send({ error: MessageError.LOGININVALID })
       }
     } catch (e) {
       console.log(e)
@@ -174,15 +176,19 @@ export default {
     const { email } = request.body
 
     try {
-      if (email.length === 0) return response.status(400).send({ error: 'E-mail não informado.' })
+      if (email.length === 0) return response.status(400).send({ error: MessageError.EMAILNOTINFORMED })
       const usersRepository = getRepository(Users)
+
+      if (!email.match(emailRegex)) {
+        return response.status(400).send({ error: MessageError.EMAILINVALID })
+      }
 
       const user = await usersRepository.findOne({ email })
       if (!user) {
-        return response.status(400).send({ error: 'User not found' })
+        return response.status(400).send({ error: MessageError.USERNOTFOUND })
       }
 
-      const code = crypto.randomBytes(6).toString('hex')
+      const code = crypto.randomBytes(3).toString('hex')
       const now = new Date()
       now.setHours(now.getHours() + 2)
 
@@ -208,7 +214,7 @@ export default {
         </div>`
       }, (err) => {
         if (err) {
-          return response.status(400).send({ error: 'Cannot send forgot password email' })
+          return response.status(400).send({ error: 'E-mail não encontrado.' })
         }
       })
 
@@ -223,33 +229,34 @@ export default {
     const { code, password, confirmPassword } = request.body
 
     try {
-      if (code.length === 0) return response.status(400).send({ error: 'Code não fornecido' })
-      if (password.length === 0) return response.status(400).send({ error: 'Senha não fornecido' })
+      if (code.length === 0) return response.status(400).send({ error: MessageError.CODENOTINFORMED })
+      if (password.length === 0) return response.status(400).send({ error: MessageError.PASSWORDNOTINFORMED })
       if (confirmPassword.length === 0) {
-        return response.status(400).send({ error: 'Confirmação de senha não fornecido' })
-      }
-      const usersRepository = getRepository(Users)
-
-      const user = await usersRepository.findOne({ codeResetPassword: code })
-      if (!user) {
-        return response.status(400).send({ error: 'User not found' })
+        return response.status(400).send({ error: MessageError.CONFIRMEDPASSWORDNOTINFORMED })
       }
 
-      const now = new Date()
-      const codeExpires = new Date(user.codeResetExpires)
-      if (now > codeExpires) {
-        return response.status(400).send({ error: 'Code expires' })
+      if (password.length <= 7) {
+        return response.status(400).send({ error: MessageError.PASSWORDMINCARACTER })
       }
 
       const salt = bcrypt.genSaltSync()
       const passwordHash = bcrypt.hashSync(password, salt)
 
-      if (password.length <= 7) {
-        return response.status(400).send({ error: 'Senha precisa ter no mínino 8 caracteres' })
+      if (!bcrypt.compareSync(confirmPassword, passwordHash)) {
+        return response.status(400).send({ error: MessageError.PASSWORDNOTCONFER })
       }
 
-      if (!bcrypt.compareSync(confirmPassword, passwordHash)) {
-        return response.status(400).send({ error: 'Passwords do not match' })
+      const usersRepository = getRepository(Users)
+
+      const user = await usersRepository.findOne({ codeResetPassword: code })
+      if (!user) {
+        return response.status(400).send({ error: MessageError.USERNOTFOUND })
+      }
+
+      const now = new Date()
+      const codeExpires = new Date(user.codeResetExpires)
+      if (now > codeExpires) {
+        return response.status(400).send({ error: MessageError.CODEEXPIRED })
       }
 
       await usersRepository.update(user.id, {
@@ -261,7 +268,7 @@ export default {
       return response.send()
     } catch (err) {
       console.log(err)
-      return response.status(400).send({ error: 'Erro on reset password, try again' })
+      return response.status(400).send({ error: 'Erro on reset password, try again.' })
     }
   },
 
@@ -270,13 +277,21 @@ export default {
       const { email } = request.body
       const data = { email }
 
+      if (data.email.length === 0) {
+        return response.status(400).send({ error: MessageError.EMAILNOTINFORMED })
+      }
+
+      if (!data.email.match(emailRegex)) {
+        return response.status(400).send({ error: MessageError.EMAILINVALID })
+      }
+
       const UsersRepository = getRepository(Users)
       const userDB = await UsersRepository.findOne({ email: data.email }, { relations: ['points', 'heartClub', 'conquests'] })
-      if (!userDB) return response.status(400).send('User not found')
+      if (!userDB) return response.status(400).send({ error: MessageError.USERNOTFOUND })
 
       const championshipCurrent = await ChampionshipController.currentChampionship()
       if (!championshipCurrent) {
-        return response.status(400).send({ error: 'Esperando Atualização de Campeonato' })
+        return response.status(400).send({ error: MessageError.ATUALIZATION })
       }
 
       const token = jwt.sign({ ...userDB }, process.env.AUTHSECRET as string, {
@@ -286,7 +301,7 @@ export default {
       return response.json(UsersView.render(token, userDB, championshipCurrent.id, championshipCurrent.currentRodada))
     } catch (err) {
       console.log(err)
-      return response.status(400).send({ error: 'Erro on init User, try again ' })
+      return response.status(400).send({ error: 'Erro on init User, try again.' })
     }
   },
 
@@ -295,13 +310,21 @@ export default {
       const { email, clubeId } = request.body
       const data = { email, clube: parseInt(clubeId, 10) }
 
+      if (data.email.length === 0) {
+        return response.status(400).send({ error: MessageError.EMAILNOTINFORMED })
+      }
+
+      if (!data.email.match(emailRegex)) {
+        return response.status(400).send({ error: MessageError.EMAILINVALID })
+      }
+
       const UsersRepository = getRepository(Users)
       const userDB = await UsersRepository.findOne({ email: data.email }, { relations: ['points', 'conquests'] })
-      if (!userDB) return response.status(400).send('User not found')
+      if (!userDB) return response.status(400).send({ error: MessageError.USERNOTFOUND })
 
       const ClubeRepository = getRepository(Clube)
       const clubeDB = await ClubeRepository.findOne({ id: data.clube })
-      if (!clubeDB) { return response.status(400).send({ error: 'Club not found' }) }
+      if (!clubeDB) { return response.status(400).send({ error: MessageError.CLUBNOTFOUND }) }
 
       await UsersRepository.update(userDB.id, {
         heartClub: clubeDB
