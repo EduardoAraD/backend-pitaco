@@ -31,14 +31,24 @@ export const MessageError = {
   ATUALIZATION: 'Esperando atualização de campeonato.',
 
   USERNOTFOUND: 'Usuário não encontrado.',
+  USERHAVELEAGUE: 'Você já possui uma liga.',
+  USERNOTHAVELEAGUE: 'Você não possui uma liga.',
   USERFRIENDEQUAL: 'E-mails iguais',
   FRIENDNOTFOUND: 'Amigo não encontrado.',
   FRIENDEXISTING: 'Vocês já são amigos.',
   CLUBNOTFOUND: 'Clube não encontrado.',
+  CHAMPIONSHIPNOTFOUND: 'Campeonato não encontrado.',
+  LEAGUENOTFOUND: 'Liga não encontrada.',
+  SOLICITATIONNOTFOUND: 'Solicitação não encontrada.',
+  SOLICITATIONEXISTING: 'Você já possui uma solicitação.',
 
   NICKNAMENOTINFORMED: 'Nickname não informado.',
   NICKNAMEEXISTING: 'Nickname já existe.',
-  NICKNAMEINVALID: 'Seu nickname não pode ter caracteres especiais.',
+  NICKNAMEINVALID: 'Nickname com apenas letras e números.',
+  NAMENOTINFORMED: 'Nome não informado.',
+  NAMEINVALID: 'Nome com apenas letras e números.',
+  DESCRIPTIONNOTINFORMED: 'Descrição não informada.',
+  DESCRIPTIONINVALID: 'Descrição com apenas letras e números.',
   EMAILNOTINFORMED: 'E-mail não informado.',
   EMAILINVALID: 'E-mail informado não é válido.',
   EMAILEXISTING: 'E-mail já existe.',
@@ -46,9 +56,15 @@ export const MessageError = {
   PASSWORDNOTINFORMED: 'Senha não informada.',
   PASSWORDMINCARACTER: 'Senha precisa ter no mínino 8 caracteres.',
   PASSWORDNOTCONFER: 'Senhas não conferem.',
+  TROPHYNOTINFORMED: 'Taça não informada.',
   CONFIRMEDPASSWORDNOTINFORMED: 'Confirmação de senha não fornecida.',
   CODENOTINFORMED: 'Código não informado.',
   CODEEXPIRED: 'Código expirado.',
 
   LOGININVALID: 'Usuário/Senha inválidas.'
+}
+
+export const regex = {
+  email: /\S+@\S+\.\S+/,
+  name: /^[A-Z0-9a-záàâãéèêíïóôõöúçñÁÀÂÃÉÈÍÏÓÔÕÖÚÇÑ ]+$/
 }

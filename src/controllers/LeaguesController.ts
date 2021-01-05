@@ -10,7 +10,8 @@ import Championship from '@models/Championship'
 import LeaguesView from '@views/leagues_view'
 import PointView from '@views/points_view'
 
-import { firstPoint } from 'src/functions'
+import { firstName, firstPoint, MessageError } from 'src/functions'
+import { descriptionValidade, emailValidade, nameValidade } from 'src/middlewares/validad'
 
 interface DataRequestCreate {
   email: string;
@@ -28,7 +29,7 @@ export default {
   async index (request: Request, response: Response) {
     try {
       const { championship } = request.body
-      const data = { id: parseInt(championship, 10) }
+      const data = { id: parseInt(championship, 10) || 0 }
 
       const leaguesRepository = getRepository(Leagues)
 
@@ -40,21 +41,26 @@ export default {
       return response.json(LeaguesView.renderMany(leagues))
     } catch (e) {
       console.log(e)
-      return response.status(400).send({ error: 'Error on View Leagues, try again' })
+      return response.status(400).send({ error: 'Error on View Leagues, try again.' })
     }
   },
 
   async indexPage (request: Request, response: Response) {
     try {
       const { championship, page, limit, filter } = request.body
-      const data = { id: parseInt(championship, 10), page: parseInt(page, 10), limit: parseInt(limit, 10), filter }
+      const data = {
+        id: parseInt(championship, 10) || 0,
+        page: parseInt(page, 10) || 0,
+        limit: parseInt(limit, 10) || 0,
+        filter: filter || ''
+      }
 
       const leaguesRepository = getRepository(Leagues)
 
       const leagues = (await leaguesRepository.find({
         relations: ['dono', 'championship']
       })).filter(item => item.sistem === 0 && item.championship.id === data.id &&
-        item.name.toLocaleLowerCase().includes(data.filter.toLocaleLowerCase()))
+        item.name.includes(data.filter))
         .map(item => { item.points = []; return item })
 
       const totalLeague = leagues.length
@@ -69,14 +75,14 @@ export default {
       })
     } catch (e) {
       console.log(e)
-      return response.status(400).send({ error: 'Error on View Leagues, try again' })
+      return response.status(400).send({ error: 'Error on View Leagues, try again.' })
     }
   },
 
   async show (request: Request, response: Response) {
     try {
       const { id } = request.params
-      const data = { id: parseInt(id) }
+      const data = { id: parseInt(id) || 0 }
 
       const leaguesRepository = getRepository(Leagues)
       const pointsRepository = getRepository(Points)
@@ -85,7 +91,7 @@ export default {
         relations: ['dono', 'championship']
       })
       if (!league) {
-        return response.status(400).send({ error: 'Not found League' })
+        return response.status(400).send({ error: MessageError.LEAGUENOTFOUND })
       }
 
       const points = await pointsRepository.find({
@@ -98,14 +104,18 @@ export default {
       return response.json(LeaguesView.render(league))
     } catch (e) {
       console.log(e)
-      return response.status(400).send({ error: 'Error on View League, try again' })
+      return response.status(400).send({ error: 'Error on View League, try again.' })
     }
   },
 
   async showPointsUser (request: Request, response: Response) {
     try {
       const { id, page, limit } = request.body
-      const data = { id: parseInt(id, 10), page: parseInt(page, 10), limit: parseInt(limit, 10) }
+      const data = {
+        id: parseInt(id, 10) || 0,
+        page: parseInt(page, 10) || 0,
+        limit: parseInt(limit, 10) || 0
+      }
 
       const PointsRepository = getRepository(Points)
       const pointsDB = (await PointsRepository.find({
@@ -124,7 +134,7 @@ export default {
       })
     } catch (e) {
       console.log(e)
-      return response.status(400).send({ error: 'Error on Show Point in League, try again' })
+      return response.status(400).send({ error: 'Error on Show Point in League, try again.' })
     }
   },
 
@@ -132,15 +142,15 @@ export default {
     try {
       const { id, clubeId, page, limit } = request.body
       const data = {
-        id: parseInt(id, 10),
-        clube: parseInt(clubeId, 10),
-        page: parseInt(page, 10),
-        limit: parseInt(limit, 10)
+        id: parseInt(id, 10) || 0,
+        clube: parseInt(clubeId, 10) || 0,
+        page: parseInt(page, 10) || 1,
+        limit: parseInt(limit, 10) || 0
       }
 
       const ClubeRepository = getRepository(Clube)
       const clubeDB = await ClubeRepository.findOne({ id: data.clube })
-      if (!clubeDB) { return response.status(400).send({ error: 'Club not found' }) }
+      if (!clubeDB) { return response.status(400).send({ error: MessageError.CLUBNOTFOUND }) }
 
       const UserRepository = getRepository(Users)
       const usersDB = await UserRepository.find({ heartClub: clubeDB })
@@ -165,14 +175,17 @@ export default {
       })
     } catch (e) {
       console.log(e)
-      return response.status(400).send({ error: 'Error on Show Point in League HeartClub, try again' })
+      return response.status(400).send({ error: 'Error on Show Point in League HeartClub, try again.' })
     }
   },
 
   async leaguePitaco (request: Request, response: Response) {
     try {
       const { championship, email } = request.body
-      const data = { id: parseInt(championship, 10), email }
+      const data = { id: parseInt(championship, 10) || 0, email: email || '' }
+
+      const error = emailValidade(data.email)
+      if (error !== '') return response.status(400).send({ error })
 
       const UserRepository = getRepository(Users)
       const leaguesRepository = getRepository(Leagues)
@@ -183,12 +196,12 @@ export default {
         item.name === 'Pitaco League')
 
       if (!league) {
-        return response.status(400).send({ error: 'Not found League' })
+        return response.status(400).send({ error: MessageError.LEAGUENOTFOUND })
       }
 
       const user = await UserRepository.findOne({ email: data.email }, { relations: ['heartClub'] })
       if (!user) {
-        return response.status(400).send({ error: 'Not found Users' })
+        return response.status(400).send({ error: MessageError.USERNOTFOUND })
       }
 
       league.points = []
@@ -204,14 +217,21 @@ export default {
       return response.json(LeaguesView.renderPoint(league, position, point))
     } catch (e) {
       console.log(e)
-      return response.status(400).send({ error: 'Error on Pitaco League, try again' })
+      return response.status(400).send({ error: 'Error on Pitaco League, try again.' })
     }
   },
 
   async leagueHeartClub (request: Request, response: Response) {
     try {
       const { championship, clubeId, email } = request.body
-      const data = { id: parseInt(championship, 10), clube: parseInt(clubeId, 10), email }
+      const data = {
+        id: parseInt(championship, 10) || 0,
+        clube: parseInt(clubeId, 10) || 0,
+        email: email || ''
+      }
+
+      const error = emailValidade(data.email)
+      if (error !== '') return response.status(400).send({ error })
 
       const leaguesRepository = getRepository(Leagues)
       const pointsRepository = getRepository(Points)
@@ -220,16 +240,16 @@ export default {
 
       const leaguePitaco = (await leaguesRepository.find({ relations: ['championship'] }))
         .find(item => item.sistem === 1 && item.championship.id === data.id && item.name === 'Pitaco League')
+      if (!leaguePitaco) {
+        return response.status(400).send({ error: MessageError.LEAGUENOTFOUND })
+      }
 
       const clubeDB = await ClubeRepository.findOne({ id: data.clube })
-      if (!clubeDB) { return response.status(400).send({ error: 'Club not found' }) }
+      if (!clubeDB) { return response.status(400).send({ error: MessageError.CLUBNOTFOUND }) }
 
       const usersDB = await UsersRepository.find({ heartClub: clubeDB })
       const user = usersDB.find(item => item.email === data.email)
-
-      if (!leaguePitaco) {
-        return response.status(400).send({ error: 'Not found League' })
-      }
+      if (!user) return response.status(400).send({ error: MessageError.USERNOTFOUND })
 
       const points = await pointsRepository.find({
         relations: ['userId', 'leagueId']
@@ -258,26 +278,29 @@ export default {
       return response.json(LeaguesView.renderPoint(leagueClub, position, point))
     } catch (e) {
       console.log(e)
-      return response.status(400).send({ error: 'Error on HeartClub League, try again' })
+      return response.status(400).send({ error: 'Error on HeartClub League, try again.' })
     }
   },
 
   async showLeagueDono (request: Request, response: Response) {
     try {
       const { championship, email } = request.body
-      const data = { championship: parseInt(championship), email } as DataRequestLeagueDono
+      const data = { championship: parseInt(championship) || 0, email: email || '' } as DataRequestLeagueDono
+
+      const error = emailValidade(data.email)
+      if (error !== '') return response.status(400).send({ error })
 
       const ChampionshipRepository = getRepository(Championship)
       const championshipDB = await ChampionshipRepository.findOne({ id: data.championship })
-      if (!championshipDB) { return response.status(400).send({ error: 'Championship not found ' }) }
+      if (!championshipDB) { return response.status(400).send({ error: MessageError.CHAMPIONSHIPNOTFOUND }) }
 
       const usersRepository = getRepository(Users)
       const user = await usersRepository.findOne({ email: data.email })
-      if (!user) { return response.status(400).send({ error: 'User not found' }) }
+      if (!user) { return response.status(400).send({ error: MessageError.USERNOTFOUND }) }
 
       const leaguesRepository = getRepository(Leagues)
       const league = await leaguesRepository.findOne({ dono: user, championship })
-      if (!league) { return response.status(400).send({ error: 'League not found' }) }
+      if (!league) { return response.status(400).send({ error: MessageError.USERNOTHAVELEAGUE }) }
 
       league.dono = user
       league.points = []
@@ -294,22 +317,27 @@ export default {
       return response.json(LeaguesView.renderPoint(league, position, point))
     } catch (e) {
       console.log(e)
-      return response.status(400).send({ error: 'Error on League of Dono, try again ' })
+      return response.status(400).send({ error: 'Error on League of Dono, try again.' })
     }
   },
 
   async leagueGuestUser (request: Request, response: Response) {
     try {
       const { championship, email } = request.body
-      const data = { championship: parseInt(championship), email }
+      const data = { championship: parseInt(championship) || 0, email: email || '' }
+
+      const error = emailValidade(data.email)
+      if (error !== '') {
+        return response.status(400).send({ error })
+      }
 
       const ChampionshipRepository = getRepository(Championship)
       const championshipDB = await ChampionshipRepository.findOne({ id: data.championship })
-      if (!championshipDB) { return response.status(400).send({ error: 'Championship not found ' }) }
+      if (!championshipDB) { return response.status(400).send({ error: MessageError.CHAMPIONSHIPNOTFOUND }) }
 
       const usersRepository = getRepository(Users)
       const user = await usersRepository.findOne({ email: data.email }, { relations: ['heartClub'] })
-      if (!user) { return response.status(400).send({ error: 'User not found' }) }
+      if (!user) { return response.status(400).send({ error: MessageError.USERNOTFOUND }) }
 
       const LeagueRepository = getRepository(Leagues)
       const leaguesDB = (await LeagueRepository.find({ relations: ['dono'] }))
@@ -340,26 +368,48 @@ export default {
       return response.json(leagues)
     } catch (e) {
       console.log(e)
-      return response.status(400).send({ error: 'Error on LeagueGuest of User, try again' })
+      return response.status(400).send({ error: 'Error on LeagueGuest of User, try again.' })
     }
   },
 
   async create (request: Request, response: Response) {
     try {
       const { email, description, trophy, name, championship } = request.body
-      const data = { email, name, description, trophy, championship: parseInt(championship, 10) } as DataRequestCreate
+      const data = {
+        email: email || '',
+        name: name || '',
+        description: description || '',
+        trophy: trophy || '',
+        championship: parseInt(championship, 10) || 0
+      } as DataRequestCreate
+
+      let error = emailValidade(data.email)
+      if (error !== '') {
+        return response.status(400).send({ error })
+      }
+      error = nameValidade(data.name)
+      if (error !== '') {
+        return response.status(400).send({ error })
+      }
+      error = descriptionValidade(data.description)
+      if (error !== '') {
+        return response.status(400).send({ error })
+      }
+      if (data.trophy === '') {
+        return response.status(400).send({ error: MessageError.TROPHYNOTINFORMED })
+      }
 
       const usersRepository = getRepository(Users)
       const user = await usersRepository.findOne({ email: data.email })
-      if (!user) { return response.status(400).send({ error: 'User not found' }) }
+      if (!user) { return response.status(400).send({ error: MessageError.USERNOTFOUND }) }
 
       const ChampionshipRepository = getRepository(Championship)
       const championshipDB = await ChampionshipRepository.findOne({ id: data.championship })
-      if (!championshipDB) { return response.status(400).send({ error: 'Championship not found' }) }
+      if (!championshipDB) { return response.status(400).send({ error: MessageError.CHAMPIONSHIPNOTFOUND }) }
 
       const leaguesRepository = getRepository(Leagues)
       const leagueExisting = await leaguesRepository.findOne({ dono: user, championship: championshipDB })
-      if (leagueExisting) { return response.status(400).send({ error: 'You already have league' }) }
+      if (leagueExisting) { return response.status(400).send({ error: MessageError.USERHAVELEAGUE }) }
 
       const dataPoint = {
         points: 0,
@@ -387,7 +437,7 @@ export default {
       return response.json(LeaguesView.render(league))
     } catch (e) {
       console.log(e)
-      return response.status(400).send({ error: 'Error on create league, try again' })
+      return response.status(400).send({ error: 'Error on create league, try again.' })
     }
   },
 
@@ -395,23 +445,28 @@ export default {
     try {
       const { id } = request.params
       const { email } = request.body
-      const data = { id: parseInt(id), email }
+      const data = { id: parseInt(id) || 0, email: email || '' }
+
+      const error = emailValidade(data.email)
+      if (error !== '') {
+        return response.status(400).send({ error })
+      }
 
       const leaguesRepository = getRepository(Leagues)
       const usersRepository = getRepository(Users)
 
       const user = await usersRepository.findOne({ email: data.email }, { relations: ['leagues'] })
-      if (!user) { return response.status(400).send({ error: 'User not found' }) }
+      if (!user) { return response.status(400).send({ error: MessageError.USERNOTFOUND }) }
 
       const league = user.leagues.find(item => item.id === data.id)
-      if (!league) { return response.status(400).send({ error: 'You have not league' }) }
+      if (!league) { return response.status(400).send({ error: MessageError.USERNOTHAVELEAGUE }) }
 
       await leaguesRepository.delete({ id: data.id })
 
       return response.send()
     } catch (e) {
       console.log(e)
-      return response.status(400).send({ error: 'Error in delete League, nor try again' })
+      return response.status(400).send({ error: 'Error in delete League, nor try again.' })
     }
   },
 
@@ -419,20 +474,25 @@ export default {
     try {
       const { id } = request.params
       const { email } = request.body
-      const data = { id: parseInt(id, 10), email }
+      const data = { id: parseInt(id, 10) || 0, email: email || '' }
+
+      const error = emailValidade(data.email)
+      if (error !== '') {
+        return response.status(400).send({ error })
+      }
 
       const LeagueRepository = getRepository(Leagues)
       const leagueDB = await LeagueRepository.findOne({ id: data.id })
-      if (!leagueDB) { return response.status(400).send({ error: 'League not found' }) }
+      if (!leagueDB) { return response.status(400).send({ error: MessageError.LEAGUENOTFOUND }) }
 
       const UsersRepository = getRepository(Users)
       const userDB = await UsersRepository.findOne({ email: data.email })
-      if (!userDB) { return response.status(400).send({ error: 'User not found' }) }
+      if (!userDB) { return response.status(400).send({ error: MessageError.USERNOTFOUND }) }
 
       const PointsRepository = getRepository(Points)
       const pointDB = await PointsRepository.findOne({ leagueId: leagueDB, userId: userDB })
 
-      if (pointDB) { return response.status(400).send({ error: 'You have a solicitation' }) }
+      if (pointDB) { return response.status(400).send({ error: MessageError.SOLICITATIONEXISTING }) }
 
       const dataPoint = {
         points: '0',
@@ -448,14 +508,14 @@ export default {
       return response.json(PointView.render(pointResul))
     } catch (e) {
       console.log(e)
-      return response.status(400).send({ error: 'Error in result Solicitation, try again' })
+      return response.status(400).send({ error: 'Error in result Solicitation, try again.' })
     }
   },
 
   async solicitationLeague (request: Request, response: Response) {
     try {
       const { id } = request.params
-      const data = { id: parseInt(id) }
+      const data = { id: parseInt(id) || 0 }
 
       const PointsRepository = getRepository(Points)
 
@@ -467,32 +527,41 @@ export default {
         .map(item => {
           item.userId = usersDB.find(itemUser => item.userId.id === itemUser.id)
           return item
-        }).sort((a, b) => firstPoint(a, b))
+        })
 
       return response.send(PointView.renderMany(pointsDB))
     } catch (e) {
       console.log(e)
-      return response.status(400).send({ error: 'Error on Solicitation League, try again' })
+      return response.status(400).send({ error: 'Error on Solicitation League, try again.' })
     }
   },
 
   async resultSolicitation (request: Request, response: Response) {
     try {
       const { id, email, result } = request.body
-      const data = { id: parseInt(id, 10), email, result: result === 'true' }
+      const data = {
+        id: parseInt(id, 10) || 0,
+        email: email || '',
+        result: result === 'true'
+      }
+
+      const error = emailValidade(data.email)
+      if (error !== '') {
+        return response.status(400).send({ error })
+      }
 
       const LeagueRepository = getRepository(Leagues)
       const leagueDB = await LeagueRepository.findOne({ id: data.id })
-      if (!leagueDB) { return response.status(400).send({ error: 'League not found' }) }
+      if (!leagueDB) { return response.status(400).send({ error: MessageError.LEAGUENOTFOUND }) }
 
       const UsersRepository = getRepository(Users)
       const userDB = await UsersRepository.findOne({ email: data.email })
-      if (!userDB) { return response.status(400).send({ error: 'User not found' }) }
+      if (!userDB) { return response.status(400).send({ error: MessageError.USERNOTFOUND }) }
 
       const PointsRepository = getRepository(Points)
       const pointDB = await PointsRepository.findOne({ leagueId: leagueDB, userId: userDB, accept: 0 })
 
-      if (!pointDB) { return response.status(400).send({ error: 'Solicitation not found' }) }
+      if (!pointDB) { return response.status(400).send({ error: MessageError.SOLICITATIONNOTFOUND }) }
 
       if (data.result) {
         await PointsRepository.update(pointDB.id, {
@@ -505,14 +574,22 @@ export default {
       return response.send()
     } catch (e) {
       console.log(e)
-      return response.status(400).send({ error: 'Error in result Solicitation, try again' })
+      return response.status(400).send({ error: 'Error in result Solicitation, try again.' })
     }
   },
 
   async commonLeagues (request: Request, response: Response) {
     try {
-      const { email1, email2 } = request.body
-      const data = { user: email1, friend: email2 }
+      const { emailUser, emailFriend } = request.body
+      const data = { user: emailUser || '', friend: emailFriend || '' }
+
+      if (data.friend === '') {
+        return response.status(400).send({ error: MessageError.EMAILFRIENDNOTINFORMED })
+      }
+      const error = emailValidade(data.user)
+      if (error !== '') {
+        return response.status(400).send({ error })
+      }
 
       const PointRepository = getRepository(Points)
       const pointsDB = await PointRepository.find({ relations: ['leagueId', 'userId'] })
@@ -522,7 +599,7 @@ export default {
       const CommomLeagues = pointsUser.filter(itemUser =>
         !!(pointFriend.find(itemFriend =>
           itemFriend.leagueId.id === itemUser.leagueId.id))
-      ).map(item => item.leagueId)
+      ).map(item => item.leagueId).sort((a, b) => firstName(a.name, b.name))
 
       const leagues = []
       const LeagueRepository = getRepository(Leagues)
@@ -536,7 +613,7 @@ export default {
       return response.json(LeaguesView.renderMany(leagues))
     } catch (e) {
       console.log(e)
-      return response.status(400).send({ error: 'Erro on Commom Leagues, try again' })
+      return response.status(400).send({ error: 'Erro on Commom Leagues, try again.' })
     }
   }
 }
