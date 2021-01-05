@@ -60,6 +60,8 @@ export const MessageError = {
   CONFIRMEDPASSWORDNOTINFORMED: 'Confirmação de senha não fornecida.',
   CODENOTINFORMED: 'Código não informado.',
   CODEEXPIRED: 'Código expirado.',
+  DATENOTINFORMED: 'Data não informada.',
+  PITACOSNOTINFORMED: 'Pitacos não informados.',
 
   LOGININVALID: 'Usuário/Senha inválidas.'
 }

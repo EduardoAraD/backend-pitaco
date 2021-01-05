@@ -10,7 +10,8 @@ import Championship from '@models/Championship'
 import pitacoView from '@views/pitaco_view'
 import matchView from '@views/match_view'
 
-import { firstMatch, stringForDate } from 'src/functions'
+import { firstMatch, MessageError, stringForDate } from 'src/functions'
+import { emailValidade } from 'src/middlewares/validad'
 
 interface DataRequestCreate {
     email: string,
@@ -44,22 +45,29 @@ export default {
       return response.json(pitacoView.renderMany(pitacos))
     } catch (e) {
       console.log(e)
-      return response.status(400).send({ error: 'Error in pitaco, try again' })
+      return response.status(400).send({ error: 'Error in pitaco, try again.' })
     }
   },
 
   async showUserRodada (request: Request, response: Response) {
     try {
       const { email, championship, rodada } = request.body
-      const data = { email, championshipId: parseInt(championship), rodada: parseInt(rodada) } as DataRequestShowUser
+      const data = {
+        email: email || '',
+        championshipId: parseInt(championship, 10) || 0,
+        rodada: parseInt(rodada, 10) || 1
+      } as DataRequestShowUser
+
+      const error = emailValidade(data.email)
+      if (error !== '') return response.status(400).send({ error })
 
       const UsersRepository = getRepository(Users)
       const user = await UsersRepository.findOne({ email: data.email })
-      if (!user) { return response.status(400).send({ error: 'User not found' }) }
+      if (!user) { return response.status(400).send({ error: MessageError.USERNOTFOUND }) }
 
       const ChampionshipRepository = getRepository(Championship)
       const championshipDB = await ChampionshipRepository.findOne({ id: data.championshipId }, { relations: ['rodadas'] })
-      if (!championshipDB) { return response.status(400).send({ error: 'Championship not found' }) }
+      if (!championshipDB) { return response.status(400).send({ error: MessageError.CHAMPIONSHIPNOTFOUND }) }
 
       const rodadaDB = championshipDB.rodadas.find((item) => item.number === data.rodada)
 
@@ -85,18 +93,23 @@ export default {
       })
     } catch (e) {
       console.log(e)
-      return response.status(400).send({ error: 'Error on Show Pitacos of Rodada of User, try again' })
+      return response.status(400).send({ error: 'Error on Show Pitacos of Rodada of User, try again.' })
     }
   },
 
   async showUserMatchsDay (request: Request, response: Response) {
     try {
       const { email, date } = request.body
-      const data = { email, date }
+      const data = { email: email || '', date: date || '' }
+
+      const error = emailValidade(data.email)
+      if (error !== '') return response.status(400).send({ error })
+
+      if (data.date === '') return response.status(400).send({ error: MessageError.DATENOTINFORMED })
 
       const UsersRepository = getRepository(Users)
       const user = await UsersRepository.findOne({ email: data.email })
-      if (!user) { return response.status(400).send({ error: 'User not found' }) }
+      if (!user) { return response.status(400).send({ error: MessageError.USERNOTFOUND }) }
 
       const MatchRepository = getRepository(Match)
       const matchsDB = await MatchRepository.find({ relations: ['clubeHome', 'clubeAway'] })
@@ -120,18 +133,34 @@ export default {
       })
     } catch (e) {
       console.log(e)
-      return response.status(400).send({ error: 'Error on Show Pitacos of day of User, try again' })
+      return response.status(400).send({ error: 'Error on Show Pitacos of day of User, try again.' })
     }
   },
 
   async createUpdate (request: Request, response: Response) {
     try {
       const { email, pitacos } = request.body
-      const data = { email, pitacos } as DataRequestCreate
+      const data = {
+        email: email || '',
+        pitacos: pitacos.map(item => {
+          return {
+            id: item.id || 0,
+            golsHome: ('' + item.golsHome) || '',
+            golsAway: ('' + item.golsAway) || ''
+          }
+        }) || []
+      } as DataRequestCreate
+
+      const error = emailValidade(data.email)
+      if (error !== '') return response.status(400).send({ error })
+
+      if (data.pitacos.length === 0) {
+        return response.status(400).send({ error: MessageError.PITACOSNOTINFORMED })
+      }
 
       const UsersRepository = getRepository(Users)
       const user = await UsersRepository.findOne({ email: data.email })
-      if (!user) { return response.status(400).send({ error: 'User not found' }) }
+      if (!user) { return response.status(400).send({ error: MessageError.USERNOTFOUND }) }
 
       const PitacoRepository = getRepository(Pitaco)
       const MatchRepository = getRepository(Match)
@@ -177,7 +206,7 @@ export default {
       return response.json(pitacoView.renderMany(pitacosOfUser))
     } catch (e) {
       console.log(e)
-      return response.status(400).send({ error: 'Error on create pitaco, try again' })
+      return response.status(400).send({ error: 'Error on create pitaco, try again.' })
     }
   },
 
@@ -188,8 +217,7 @@ export default {
 
     const usersAll = await UsersRepository.find()
 
-    let i = 0
-    for (i = 0; i < usersAll.length; i++) {
+    for (let i = 0; i < usersAll.length; i++) {
       const pitaco = await PitacoRepository.findOne({ matchId: match, userId: usersAll[i] })
       if (pitaco) {
         const pointBefore = pitaco.point
