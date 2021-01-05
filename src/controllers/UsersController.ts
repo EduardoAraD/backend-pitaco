@@ -14,9 +14,7 @@ import UsersView from '@views/users_view'
 import { MessageError } from '../functions'
 
 import ChampionshipController from './ChampionshipController'
-
-const emailRegex = /\S+@\S+\.\S+/
-const nicknameRegex = /^[A-Z0-9a-záàâãéèêíïóôõöúçñÁÀÂÃÉÈÍÏÓÔÕÖÚÇÑ ]+$/
+import { emailValidade, nickNameValidade } from 'src/middlewares/validad'
 
 interface DataRequestSignUp {
   name: string;
@@ -52,22 +50,11 @@ export default {
         return response.status(400).send({ error: MessageError.ATUALIZATION })
       }
 
-      if (data.name.length <= 0) {
-        return response.status(400).send({ error: MessageError.NICKNAMENOTINFORMED })
-      }
+      let error = nickNameValidade(data.name)
+      if (error !== '') return response.status(400).send({ error })
 
-      if (data.email === '') {
-        return response.status(400).send({ error: MessageError.EMAILNOTINFORMED })
-      }
-
-      // checando dados
-      if (!data.name.match(nicknameRegex)) {
-        return response.status(400).send({ error: MessageError.NICKNAMEINVALID })
-      }
-
-      if (!data.email.match(emailRegex)) {
-        return response.status(400).send({ error: MessageError.EMAILINVALID })
-      }
+      error = emailValidade(data.email)
+      if (error !== '') return response.status(400).send({ error })
 
       if (data.password.length <= 7) {
         return response.status(400).send({ error: MessageError.PASSWORDMINCARACTER })
@@ -152,15 +139,17 @@ export default {
         email,
         password
       } = request.body
-      if (email === '') return response.status(400).send({ error: MessageError.EMAILNOTINFORMED })
-      if (password === '') return response.status(400).send({ error: MessageError.PASSWORDNOTINFORMED })
 
       const championshipCurrent = await ChampionshipController.currentChampionship()
       if (!championshipCurrent) {
         return response.status(400).send({ error: MessageError.ATUALIZATION })
       }
 
-      const data = { email, password } as DataRequestSignIn
+      const data = { email: email || '', password: password || '' } as DataRequestSignIn
+
+      const error = emailValidade(data.email)
+      if (error !== '') return response.status(400).send({ error })
+      if (data.password === '') return response.status(400).send({ error: MessageError.PASSWORDNOTINFORMED })
 
       const usersRepository = getRepository(Users)
 
@@ -182,14 +171,12 @@ export default {
   },
 
   async forgotPassword (request: Request, response: Response) {
-    const { email } = request.body
+    const email = request.body.email || ''
     try {
-      if (email.length === 0) return response.status(400).send({ error: MessageError.EMAILNOTINFORMED })
-      const usersRepository = getRepository(Users)
+      const error = emailValidade(email)
+      if (error) return response.status(400).send({ error })
 
-      if (!email.match(emailRegex)) {
-        return response.status(400).send({ error: MessageError.EMAILINVALID })
-      }
+      const usersRepository = getRepository(Users)
 
       const user = await usersRepository.findOne({ email })
       if (!user) {
@@ -236,26 +223,32 @@ export default {
   async resetPassword (request: Request, response: Response) {
     const { code, password, confirmPassword } = request.body
     try {
-      if (code.length === 0) return response.status(400).send({ error: MessageError.CODENOTINFORMED })
-      if (password.length === 0) return response.status(400).send({ error: MessageError.PASSWORDNOTINFORMED })
-      if (confirmPassword.length === 0) {
+      const data = {
+        code: code || '',
+        password: password || '',
+        confirmPassword: confirmPassword || ''
+      }
+
+      if (data.code.length === '') return response.status(400).send({ error: MessageError.CODENOTINFORMED })
+      if (data.password.length === '') return response.status(400).send({ error: MessageError.PASSWORDNOTINFORMED })
+      if (data.confirmPassword.length === '') {
         return response.status(400).send({ error: MessageError.CONFIRMEDPASSWORDNOTINFORMED })
       }
 
-      if (password.length <= 7) {
+      if (data.password.length <= 7) {
         return response.status(400).send({ error: MessageError.PASSWORDMINCARACTER })
       }
 
       const salt = bcrypt.genSaltSync()
-      const passwordHash = bcrypt.hashSync(password, salt)
+      const passwordHash = bcrypt.hashSync(data.password, salt)
 
-      if (!bcrypt.compareSync(confirmPassword, passwordHash)) {
+      if (!bcrypt.compareSync(data.confirmPassword, passwordHash)) {
         return response.status(400).send({ error: MessageError.PASSWORDNOTCONFER })
       }
 
       const usersRepository = getRepository(Users)
 
-      const user = await usersRepository.findOne({ codeResetPassword: code })
+      const user = await usersRepository.findOne({ codeResetPassword: data.code })
       if (!user) {
         return response.status(400).send({ error: MessageError.USERNOTFOUND })
       }
@@ -282,15 +275,10 @@ export default {
   async initUser (request: Request, response: Response) {
     try {
       const { email } = request.body
-      const data = { email }
+      const data = { email: email || '' }
 
-      if (data.email === '') {
-        return response.status(400).send({ error: MessageError.EMAILNOTINFORMED })
-      }
-
-      if (!data.email.match(emailRegex)) {
-        return response.status(400).send({ error: MessageError.EMAILINVALID })
-      }
+      const error = emailValidade(data.email)
+      if (error !== '') return response.status(400).send({ error })
 
       const UsersRepository = getRepository(Users)
       const userDB = await UsersRepository.findOne({ email: data.email }, { relations: ['points', 'heartClub', 'conquests'] })
@@ -315,15 +303,10 @@ export default {
   async chooseClub (request: Request, response: Response) {
     try {
       const { email, clubeId } = request.body
-      const data = { email, clube: parseInt(clubeId, 10) || 0 }
+      const data = { email: email || '', clube: parseInt(clubeId, 10) || 0 }
 
-      if (data.email.length === 0) {
-        return response.status(400).send({ error: MessageError.EMAILNOTINFORMED })
-      }
-
-      if (!data.email.match(emailRegex)) {
-        return response.status(400).send({ error: MessageError.EMAILINVALID })
-      }
+      const error = emailValidade(data.email)
+      if (error !== '') return response.status(400).send({ error })
 
       const UsersRepository = getRepository(Users)
       const userDB = await UsersRepository.findOne({ email: data.email }, { relations: ['points', 'conquests'] })
