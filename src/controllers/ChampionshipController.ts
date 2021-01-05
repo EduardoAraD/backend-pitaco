@@ -1,7 +1,7 @@
 import { getRepository } from 'typeorm'
 import { Request, Response } from 'express'
 
-import { firstMatch, stringForDate } from 'src/functions'
+import { firstMatch, firstName, MessageError, stringForDate } from 'src/functions'
 import { Atualization } from './Atualization'
 
 import Championship from '@models/Championship'
@@ -22,12 +22,12 @@ export default {
   async tabela (request: Request, response: Response) {
     try {
       const { id } = request.params
-      const data = { id: parseInt(id) } as DataRequestParams
+      const data = { id: parseInt(id) || 0 } as DataRequestParams
 
       const ChampionshipRepository = getRepository(Championship)
       const championshipDB = await ChampionshipRepository.findOne({ id: data.id })
       if (!championshipDB) {
-        return response.status(400).json({ error: 'Championship not exist' })
+        return response.status(400).json({ error: MessageError.CHAMPIONSHIPNOTFOUND })
       }
 
       const StandingRepository = getRepository(ClubeClassification)
@@ -51,18 +51,18 @@ export default {
       return response.json(standingsView.renderMany(standings))
     } catch (e) {
       console.log(e)
-      return response.status(400).send({ error: 'Error in tabela, try again' })
+      return response.status(400).send({ error: 'Error in get tabela, try again.' })
     }
   },
 
   async rodadas (request: Request, response: Response) {
     try {
       const { id } = request.params
-      const data = { id: parseInt(id) } as DataRequestParams
+      const data = { id: parseInt(id) || 0 } as DataRequestParams
 
       const ChampionshipRepository = getRepository(Championship)
       const championshipDB = await ChampionshipRepository.findOne({ id: data.id }, { relations: ['rodadas'] })
-      if (!championshipDB) return response.status(400).json({ error: 'Championship not found' })
+      if (!championshipDB) return response.status(400).json({ error: MessageError.CHAMPIONSHIPNOTFOUND })
 
       const MatchRepository = getRepository(Match)
       const matchs = await MatchRepository.find({ relations: ['clubeHome', 'clubeAway', 'rodadaId'] })
@@ -75,21 +75,21 @@ export default {
       return response.json(rodadaView.renderMany(rodadas))
     } catch (e) {
       console.log(e)
-      return response.status(400).send({ error: 'Error in rodadas, try again' })
+      return response.status(400).send({ error: 'Error in rodadas, try again.' })
     }
   },
 
   async matchsRodada (request: Request, response: Response) {
     try {
       const { id, numRodada } = request.params
-      const data = { id: parseInt(id), rodadaId: parseInt(numRodada) } as DataRequestParams
+      const data = { id: parseInt(id) || 0, rodadaId: parseInt(numRodada) || 1 } as DataRequestParams
 
       const ChampionshipRepository = getRepository(Championship)
       const championshipDB = await ChampionshipRepository.findOne({ id: data.id }, { relations: ['rodadas'] })
-      if (!championshipDB) return response.status(400).json({ error: 'Championship not found' })
+      if (!championshipDB) return response.status(400).json({ error: MessageError.CHAMPIONSHIPNOTFOUND })
 
       const rodada = championshipDB.rodadas.find(item => item.number === data.rodadaId)
-      if (!rodada) return response.status(400).json({ error: 'Rodada not found' })
+      if (!rodada) return response.status(400).json({ error: MessageError.RODADANOTFOUND })
 
       const MatchRepository = getRepository(Match)
       const matchsDB = await MatchRepository.find({ relations: ['clubeHome', 'clubeAway', 'rodadaId'] })
@@ -99,7 +99,19 @@ export default {
       return response.json(rodadaView.renderItem(rodada))
     } catch (e) {
       console.log(e)
-      return response.status(400).send({ error: 'Error in matchs Rodada, try again' })
+      return response.status(400).send({ error: 'Error in matchs Rodada, try again.' })
+    }
+  },
+
+  async getClubes (request: Request, response: Response) {
+    try {
+      const ClubeRepository = getRepository(Clube)
+      const clubesDB = (await ClubeRepository.find()).sort((a, b) => firstName(a.name, b.name))
+
+      return response.json(ClubeView.renderMany(clubesDB))
+    } catch (e) {
+      console.log(e)
+      return response.status(400).send({ error: 'Erro on get Clubes, try again.' })
     }
   },
 
@@ -132,29 +144,17 @@ export default {
     return championshipReturn
   },
 
-  async getClubes (request: Request, response: Response) {
-    try {
-      const ClubeRepository = getRepository(Clube)
-      const clubesDB = await ClubeRepository.find()
-
-      return response.json(ClubeView.renderMany(clubesDB))
-    } catch (e) {
-      console.log(e)
-      return response.status(400).send({ error: 'Erro on get Clubes, try again' })
-    }
-  },
-
   async AtualizationSportApi (request: Request, response: Response) {
     try {
       const { cod } = request.params
       if (cod === 'SKJASD') {
         await Atualization()
-        return response.json({ message: 'Atualizado' })
+        return response.json({ message: 'Atualizado.' })
       }
       return response.send()
     } catch (e) {
       console.log(e)
-      return response.status(400).send({ error: 'Erro on Atualization of API, try again' })
+      return response.status(400).send({ error: 'Erro on Atualization of API, try again.' })
     }
   }
 }

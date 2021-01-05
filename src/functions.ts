@@ -38,6 +38,7 @@ export const MessageError = {
   FRIENDEXISTING: 'Vocês já são amigos.',
   CLUBNOTFOUND: 'Clube não encontrado.',
   CHAMPIONSHIPNOTFOUND: 'Campeonato não encontrado.',
+  RODADANOTFOUND: 'Rodada não encontrada',
   LEAGUENOTFOUND: 'Liga não encontrada.',
   SOLICITATIONNOTFOUND: 'Solicitação não encontrada.',
   SOLICITATIONEXISTING: 'Você já possui uma solicitação.',
