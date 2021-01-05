@@ -23,6 +23,10 @@ export function firstPoint (point1: Points, point2: Points) {
   return -1
 }
 
+export function firstName (name1: string, name2: string) {
+  return (name1 > name2) ? 1 : ((name2 > name1) ? -1 : 0)
+}
+
 export const MessageError = {
   ATUALIZATION: 'Esperando atualização de campeonato.',
 

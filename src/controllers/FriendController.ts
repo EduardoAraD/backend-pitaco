@@ -8,7 +8,7 @@ import Conquest from '@models/Conquest'
 import UsersView from '@views/users_view'
 import FriendView from '@views/friend_view'
 
-import { MessageError } from '../functions'
+import { MessageError, firstName } from '../functions'
 
 export default {
   async getFriends (request: Request, response: Response) {
@@ -30,7 +30,7 @@ export default {
         const friend = usersDB.find(user => user.serFriend.find(userSerFriend => userSerFriend.id === item.id))
         friend.conquests = conquestsDB.filter(conquest => conquest.user.id === friend.id)
         return friend
-      })
+      }).sort((a, b) => firstName(a.name, b.name))
 
       return response.json(UsersView.renderMany(friendsUser))
     } catch (e) {
@@ -104,6 +104,7 @@ export default {
         const friend = friendsDB.find(friend => friend.friend.id === item.id)
         return !friend
       }).filter(item => item.id !== user.id)
+        .sort((a, b) => firstName(a.name, b.name))
 
       return response.json(UsersView.renderMany(listUsers))
     } catch (e) {
@@ -133,12 +134,12 @@ export default {
         .filter(item => item.user.id === user.id)
 
       const usersDB = await UsersRepository.find({ relations: ['heartClub'] })
-      const listUsers = usersDB.filter(item => {
+      const listUsers: Users[] = usersDB.filter(item => {
         const friend = friendsDB.find(friend => friend.friend.id === item.id)
         return !friend
       }).filter(item => item.id !== user.id &&
         item.name.includes(data.filter)
-      )
+      ).sort((a, b) => firstName(a.name, b.name))
 
       const totalUsers = listUsers.length
       const usersResp = listUsers.splice(data.limit * (data.page - 1), data.limit)
