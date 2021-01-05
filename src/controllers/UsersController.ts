@@ -16,6 +16,7 @@ import { MessageError } from '../functions'
 import ChampionshipController from './ChampionshipController'
 
 const emailRegex = /\S+@\S+\.\S+/
+const nicknameRegex = /^[A-Z0-9a-záàâãéèêíïóôõöúçñÁÀÂÃÉÈÍÏÓÔÕÖÚÇÑ ]+$/
 
 interface DataRequestSignUp {
   name: string;
@@ -40,10 +41,10 @@ export default {
       } = request.body
 
       const data: DataRequestSignUp = {
-        name,
-        email,
-        password,
-        confirmPassword
+        name: name || '',
+        email: email || '',
+        password: password || '',
+        confirmPassword: confirmPassword || ''
       }
 
       const championshipCurrent = await ChampionshipController.currentChampionship()
@@ -55,7 +56,15 @@ export default {
         return response.status(400).send({ error: MessageError.NICKNAMENOTINFORMED })
       }
 
+      if (data.email === '') {
+        return response.status(400).send({ error: MessageError.EMAILNOTINFORMED })
+      }
+
       // checando dados
+      if (!data.name.match(nicknameRegex)) {
+        return response.status(400).send({ error: MessageError.NICKNAMEINVALID })
+      }
+
       if (!data.email.match(emailRegex)) {
         return response.status(400).send({ error: MessageError.EMAILINVALID })
       }
@@ -133,7 +142,7 @@ export default {
       return response.json(UsersView.render(token, user, championshipCurrent.id, championshipCurrent.currentRodada))
     } catch (e) {
       console.log(e)
-      return response.status(400).send({ error: 'Error on create user, try again' })
+      return response.status(400).send({ error: 'Error on create user, try again.' })
     }
   },
 
@@ -168,13 +177,12 @@ export default {
       }
     } catch (e) {
       console.log(e)
-      return response.status(400).send({ error: 'Error on Sign In, try again' })
+      return response.status(400).send({ error: 'Error on Sign In, try again.' })
     }
   },
 
   async forgotPassword (request: Request, response: Response) {
     const { email } = request.body
-
     try {
       if (email.length === 0) return response.status(400).send({ error: MessageError.EMAILNOTINFORMED })
       const usersRepository = getRepository(Users)
@@ -221,13 +229,12 @@ export default {
       return response.send()
     } catch (err) {
       console.log(err)
-      return response.status(400).send({ error: 'Erro on forget password, try again' })
+      return response.status(400).send({ error: 'Erro on forget password, try again.' })
     }
   },
 
   async resetPassword (request: Request, response: Response) {
     const { code, password, confirmPassword } = request.body
-
     try {
       if (code.length === 0) return response.status(400).send({ error: MessageError.CODENOTINFORMED })
       if (password.length === 0) return response.status(400).send({ error: MessageError.PASSWORDNOTINFORMED })
@@ -277,7 +284,7 @@ export default {
       const { email } = request.body
       const data = { email }
 
-      if (data.email.length === 0) {
+      if (data.email === '') {
         return response.status(400).send({ error: MessageError.EMAILNOTINFORMED })
       }
 
@@ -308,7 +315,7 @@ export default {
   async chooseClub (request: Request, response: Response) {
     try {
       const { email, clubeId } = request.body
-      const data = { email, clube: parseInt(clubeId, 10) }
+      const data = { email, clube: parseInt(clubeId, 10) || 0 }
 
       if (data.email.length === 0) {
         return response.status(400).send({ error: MessageError.EMAILNOTINFORMED })
@@ -334,7 +341,7 @@ export default {
       return response.json(UsersView.renderItem(userDB))
     } catch (err) {
       console.log(err)
-      return response.status(400).send({ error: 'Erro on choose a Club, try again ' })
+      return response.status(400).send({ error: 'Erro on choose a Club, try again.' })
     }
   }
 }
