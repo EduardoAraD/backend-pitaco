@@ -1,4 +1,4 @@
-import Rodada from '@models/Rodada'
+import Rodada from '../models/Rodada'
 
 import matchView from './match_view'
 

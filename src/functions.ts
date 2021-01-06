@@ -1,5 +1,5 @@
-import Match from '@models/Match'
-import Points from '@models/Points'
+import Match from './models/Match'
+import Points from './models/Points'
 
 export function stringForDate (date: string, hour: string) {
   const [day, mount, year] = date.split('/')

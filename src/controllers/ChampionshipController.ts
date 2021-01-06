@@ -1,17 +1,18 @@
 import { getRepository } from 'typeorm'
 import { Request, Response } from 'express'
 
-import { firstMatch, firstName, MessageError, stringForDate } from 'src/functions'
+import Championship from '../models/Championship'
+import Standing from '../models/Standing'
+import Match from '../models/Match'
+import Clube from '../models/Clube'
+
+import standingsView from '../views/standings_view'
+import rodadaView from '../views/rodada_view'
+import ClubeView from '../views/clube_view'
+
+import { firstMatch, firstName, MessageError, stringForDate } from '../functions'
+
 import { Atualization } from './Atualization'
-
-import Championship from '@models/Championship'
-import ClubeClassification from '@models/ClubeClassification'
-import Match from '@models/Match'
-import Clube from '@models/Clube'
-
-import standingsView from '@views/standings_view'
-import rodadaView from '@views/rodada_view'
-import ClubeView from '@views/clube_view'
 
 interface DataRequestParams {
   id: number,
@@ -30,7 +31,7 @@ export default {
         return response.status(400).json({ error: MessageError.CHAMPIONSHIPNOTFOUND })
       }
 
-      const StandingRepository = getRepository(ClubeClassification)
+      const StandingRepository = getRepository(Standing)
       const standings = (await StandingRepository.find({ relations: ['clube', 'championshipId'] }))
         .filter(item => item.championshipId.id === championshipDB.id)
         .sort((a, b) => {

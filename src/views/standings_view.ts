@@ -1,9 +1,9 @@
-import ClubeClassification from '@models/ClubeClassification'
+import Standing from '../models/Standing'
 
 import clubeView from './clube_view'
 
 export default {
-  renderItem (clube: ClubeClassification, index?: number) {
+  renderItem (clube: Standing, index?: number) {
     return {
       position: 1 + index,
       clube: clubeView.renderItem(clube.clube),
@@ -20,7 +20,7 @@ export default {
     }
   },
 
-  renderMany (classification: ClubeClassification[]) {
+  renderMany (classification: Standing[]) {
     return classification.map((clube, index) => this.renderItem(clube, index))
   }
 }

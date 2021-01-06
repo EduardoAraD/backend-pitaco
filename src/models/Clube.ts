@@ -1,6 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, OneToOne, OneToMany } from 'typeorm'
 
-import ClubeClassification from './ClubeClassification'
+import Standing from './Standing'
 import Match from './Match'
 import Users from './Users'
 import IdApiClube from './IdApiClube'
@@ -27,10 +27,10 @@ export default class Clube {
     })
     idsApiClube: IdApiClube[]
 
-    @OneToOne(() => ClubeClassification, classification => classification.clube, {
+    @OneToOne(() => Standing, standing => standing.clube, {
       cascade: ['insert', 'update']
     })
-    class: ClubeClassification
+    class: Standing
 
     @OneToMany(() => Match, match => match.clubeHome, {
       cascade: ['insert', 'update']

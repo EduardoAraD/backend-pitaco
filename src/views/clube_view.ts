@@ -1,4 +1,4 @@
-import Clube from '@models/Clube'
+import Clube from '../models/Clube'
 
 export default {
   renderItem (clube: Clube) {

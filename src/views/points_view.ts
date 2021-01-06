@@ -1,4 +1,4 @@
-import Points from '@models/Points'
+import Points from '../models/Points'
 
 import usersView from './users_view'
 

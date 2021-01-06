@@ -1,4 +1,4 @@
-import Friend from '@models/Friend'
+import Friend from '../models/Friend'
 
 import UsersView from './users_view'
 

@@ -1,4 +1,4 @@
-import Pitaco from '@models/Pitaco'
+import Pitaco from '../models/Pitaco'
 
 import usersView from './users_view'
 import matchView from './match_view'

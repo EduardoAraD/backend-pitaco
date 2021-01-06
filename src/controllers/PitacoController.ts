@@ -1,17 +1,18 @@
 import { getRepository } from 'typeorm'
 import { Request, Response } from 'express'
 
-import Pitaco from '@models/Pitaco'
-import Users from '@models/Users'
-import Points from '@models/Points'
-import Match from '@models/Match'
-import Championship from '@models/Championship'
+import { emailValidade } from '../middlewares/validad'
 
-import pitacoView from '@views/pitaco_view'
-import matchView from '@views/match_view'
+import Pitaco from '../models/Pitaco'
+import Users from '../models/Users'
+import Points from '../models/Points'
+import Match from '../models/Match'
+import Championship from '../models/Championship'
 
-import { firstMatch, MessageError, stringForDate } from 'src/functions'
-import { emailValidade } from 'src/middlewares/validad'
+import pitacoView from '../views/pitaco_view'
+import matchView from '../views/match_view'
+
+import { firstMatch, MessageError, stringForDate } from '../functions'
 
 interface DataRequestCreate {
     email: string,

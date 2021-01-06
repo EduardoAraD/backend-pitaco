@@ -4,7 +4,7 @@ import Championship from './Championship'
 import Clube from './Clube'
 
 @Entity('standing')
-export default class ClubeClassification {
+export default class Standing {
     @PrimaryGeneratedColumn('increment')
     id: number
 

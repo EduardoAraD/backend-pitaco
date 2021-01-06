@@ -1,6 +1,8 @@
-import { Atualization } from '@controllers/Atualization'
+import { Atualization } from '../controllers/Atualization'
 
 const main = async () => {
+  const data = new Date()
+  console.log(`Atualizando: ${data.getHours()}:${data.getMinutes()}`)
   await Atualization()
 }
 

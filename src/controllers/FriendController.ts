@@ -1,12 +1,12 @@
 import { getRepository } from 'typeorm'
 import { Request, Response } from 'express'
 
-import Friend from '@models/Friend'
-import Users from '@models/Users'
-import Conquest from '@models/Conquest'
+import Friend from '../models/Friend'
+import Users from '../models/Users'
+import Conquest from '../models/Conquest'
 
-import UsersView from '@views/users_view'
-import FriendView from '@views/friend_view'
+import UsersView from '../views/users_view'
+import FriendView from '../views/friend_view'
 
 import { MessageError, firstName } from '../functions'
 

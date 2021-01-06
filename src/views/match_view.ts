@@ -1,4 +1,4 @@
-import Match from '@models/Match'
+import Match from '../models/Match'
 
 import clubeView from './clube_view'
 

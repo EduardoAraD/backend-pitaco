@@ -1,8 +1,8 @@
-import Leagues from '@models/Leagues'
+import Leagues from '../models/Leagues'
+import Points from '../models/Points'
 
 import usersView from './users_view'
 import pointsView from './points_view'
-import Points from '@models/Points'
 
 export default {
   render (league: Leagues) {

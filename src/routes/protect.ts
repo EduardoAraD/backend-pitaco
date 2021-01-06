@@ -1,12 +1,12 @@
 import { Router } from 'express'
 
-import LeaguesController from '@controllers/LeaguesController'
-import PitacoController from '@controllers/PitacoController'
-import ChampionshipController from '@controllers/ChampionshipController'
+import LeaguesController from '../controllers/LeaguesController'
+import PitacoController from '../controllers/PitacoController'
+import ChampionshipController from '../controllers/ChampionshipController'
+import UsersController from '../controllers/UsersController'
+import FriendController from '../controllers/FriendController'
 
 import auth from '../middlewares/auth'
-import UsersController from '@controllers/UsersController'
-import FriendController from '@controllers/FriendController'
 
 const routes = Router()
 routes.use(auth)

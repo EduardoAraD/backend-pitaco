@@ -1,4 +1,4 @@
-import Conquest from '@models/Conquest'
+import Conquest from '../models/Conquest'
 
 export default {
   render (conquest: Conquest) {

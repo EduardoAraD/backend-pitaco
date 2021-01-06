@@ -1,18 +1,18 @@
 import { getRepository } from 'typeorm'
+import Axios from 'axios'
 
 import api from '../services/api'
 
-import Championship from '@models/Championship'
-import ClubeClassification from '@models/ClubeClassification'
-import Clube from '@models/Clube'
-import Rodada from '@models/Rodada'
-import Match from '@models/Match'
-
-import PitacoController from './PitacoController'
+import Championship from '../models/Championship'
+import Standing from '../models/Standing'
+import Clube from '../models/Clube'
+import Rodada from '../models/Rodada'
+import Match from '../models/Match'
+import IdApiClube from '../models/IdApiClube'
 
 import { stringForDate } from '../functions'
-import IdApiClube from '@models/IdApiClube'
-import Axios from 'axios'
+
+import PitacoController from './PitacoController'
 
 interface DataRequestChampionship {
   name: string,
@@ -215,7 +215,7 @@ async function Atualization () {
     }
 
     if (updateStandings) {
-      const StandingsRepository = getRepository(ClubeClassification)
+      const StandingsRepository = getRepository(Standing)
       const standingsDB = await StandingsRepository.find({ relations: ['clube', 'championshipId'] })
       const standingsChamspionshipDB = standingsDB.filter(item => item.championshipId.id === championshipDB.id)
 
@@ -449,8 +449,8 @@ function defineStatusMatch (status: string, htScore: string, ftScore: string, da
   return 'notstarted'
 }
 
-async function createClubeStandings (standing: StandingAPI[], idApiClubesDB: IdApiClube[]): Promise<ClubeClassification[]> {
-  const standingSaves: ClubeClassification[] = []
+async function createClubeStandings (standing: StandingAPI[], idApiClubesDB: IdApiClube[]): Promise<Standing[]> {
+  const standingSaves: Standing[] = []
 
   for (let i = 0; i < standing.length; i++) {
     const utilization = (parseInt(standing[i].overall.won) * 3 + parseInt(standing[i].overall.draw)) /
@@ -466,7 +466,7 @@ async function createClubeStandings (standing: StandingAPI[], idApiClubesDB: IdA
       goalsConceded: parseInt(standing[i].overall.goals_against),
       utilization: parseInt((utilization * 100).toFixed(1)),
       status: defineStatusItemStanding(standing[i].status, standing[i].result)
-    } as ClubeClassification
+    } as Standing
 
     standingSaves.push(itemStanding)
   }
@@ -474,8 +474,8 @@ async function createClubeStandings (standing: StandingAPI[], idApiClubesDB: IdA
   return filterStandings(standingSaves)
 }
 
-function filterStandings (standing: ClubeClassification[]): ClubeClassification[] {
-  const standingFilter: ClubeClassification[] = []
+function filterStandings (standing: Standing[]): Standing[] {
+  const standingFilter: Standing[] = []
   for (let i = 0; i < standing.length; i++) {
     const itemStanding = standingFilter.find(item => item.clube.id === standing[i].clube.id)
     if (!itemStanding) standingFilter.push(standing[i])
@@ -621,7 +621,7 @@ function equalsMatch (match1: Match, match2: Match): boolean {
     match1.golsHome === match2.golsHome && match1.golsAway === match2.golsAway
 }
 
-function equalsItemStanding (standing1: ClubeClassification, standing2: ClubeClassification): boolean {
+function equalsItemStanding (standing1: Standing, standing2: Standing): boolean {
   return standing1.points === standing2.points && standing1.wins === standing2.wins &&
     standing1.draw === standing2.draw && standing1.matchs === standing2.matchs &&
     standing1.goalsScored === standing2.goalsScored && standing1.goalsConceded === standing2.goalsConceded &&

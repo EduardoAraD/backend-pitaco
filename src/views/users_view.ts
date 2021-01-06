@@ -1,4 +1,4 @@
-import User from '@models/Users'
+import User from '../models/Users'
 
 import pointsView from './points_view'
 import conquestView from './conquest_view'

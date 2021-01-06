@@ -5,16 +5,17 @@ import jwt from 'jsonwebtoken'
 import crypto from 'crypto'
 import nodemailer from 'nodemailer'
 
-import Users from '@models/Users'
-import Leagues from '@models/Leagues'
-import Clube from '@models/Clube'
+import { emailValidade, nickNameValidade } from '../middlewares/validad'
 
-import UsersView from '@views/users_view'
+import Users from '../models/Users'
+import Leagues from '../models/Leagues'
+import Clube from '../models/Clube'
+
+import UsersView from '../views/users_view'
 
 import { MessageError } from '../functions'
 
 import ChampionshipController from './ChampionshipController'
-import { emailValidade, nickNameValidade } from 'src/middlewares/validad'
 
 interface DataRequestSignUp {
   name: string;
@@ -326,5 +327,13 @@ export default {
       console.log(err)
       return response.status(400).send({ error: 'Erro on choose a Club, try again.' })
     }
+  },
+
+  async test (request: Request, response: Response) {
+    const data = new Date()
+    return response.json({
+      message:
+      `Estamos funcionando: ${data.toLocaleDateString()} ${data.getHours()}:${data.getMinutes()}:${data.getSeconds()}`
+    })
   }
 }
