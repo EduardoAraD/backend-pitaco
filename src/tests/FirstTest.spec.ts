@@ -1,7 +1,7 @@
-import { User } from '../models/User'
+import Users from '../models/Users'
 
 test('it should be ok', () => {
-  const user = new User()
+  const user = new Users()
 
   user.name = 'Eduardo'
 
