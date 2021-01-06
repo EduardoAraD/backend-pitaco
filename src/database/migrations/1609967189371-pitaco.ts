@@ -1,9 +1,9 @@
 import { MigrationInterface, QueryRunner, Table } from 'typeorm'
 
-export class createPoints1605114158842 implements MigrationInterface {
+export class pitaco1609967189371 implements MigrationInterface {
   public async up (queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(new Table({
-      name: 'points',
+      name: 'pitaco',
       columns: [
         {
           name: 'id',
@@ -14,7 +14,15 @@ export class createPoints1605114158842 implements MigrationInterface {
           generationStrategy: 'increment'
         },
         {
-          name: 'points',
+          name: 'golsHome',
+          type: 'integer'
+        },
+        {
+          name: 'golsAway',
+          type: 'integer'
+        },
+        {
+          name: 'point',
           type: 'integer'
         },
         {
@@ -26,17 +34,13 @@ export class createPoints1605114158842 implements MigrationInterface {
           type: 'integer'
         },
         {
-          name: 'accept',
-          type: 'integer'
-        },
-        {
-          name: 'leagueId',
+          name: 'matchId',
           type: 'integer'
         }
       ],
       foreignKeys: [
         {
-          name: 'PointsUser',
+          name: 'PitacoUser',
           columnNames: ['userId'],
           referencedTableName: 'users',
           referencedColumnNames: ['id'],
@@ -44,9 +48,9 @@ export class createPoints1605114158842 implements MigrationInterface {
           onDelete: 'CASCADE'
         },
         {
-          name: 'PointsLeague',
-          columnNames: ['leagueId'],
-          referencedTableName: 'leagues',
+          name: 'PitacoMatch',
+          columnNames: ['matchId'],
+          referencedTableName: 'match',
           referencedColumnNames: ['id'],
           onUpdate: 'CASCADE',
           onDelete: 'CASCADE'
@@ -56,6 +60,6 @@ export class createPoints1605114158842 implements MigrationInterface {
   }
 
   public async down (queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('points')
+    await queryRunner.dropTable('pitaco')
   }
 }

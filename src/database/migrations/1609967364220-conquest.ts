@@ -1,9 +1,9 @@
 import { MigrationInterface, QueryRunner, Table } from 'typeorm'
 
-export class idsClube1609158381746 implements MigrationInterface {
+export class conquest1609967364220 implements MigrationInterface {
   public async up (queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(new Table({
-      name: 'idApiClube',
+      name: 'conquest',
       columns: [
         {
           name: 'id',
@@ -14,19 +14,31 @@ export class idsClube1609158381746 implements MigrationInterface {
           generationStrategy: 'increment'
         },
         {
-          name: 'idApi',
+          name: 'position',
           type: 'integer'
         },
         {
-          name: 'clubeId',
+          name: 'leagueId',
+          type: 'integer'
+        },
+        {
+          name: 'userId',
           type: 'integer'
         }
       ],
       foreignKeys: [
         {
-          name: 'idClubeClube',
-          columnNames: ['clubeId'],
-          referencedTableName: 'clube',
+          name: 'ConquestUser',
+          columnNames: ['userId'],
+          referencedTableName: 'users',
+          referencedColumnNames: ['id'],
+          onUpdate: 'CASCADE',
+          onDelete: 'CASCADE'
+        },
+        {
+          name: 'ConquestLeague',
+          columnNames: ['leagueId'],
+          referencedTableName: 'league',
           referencedColumnNames: ['id'],
           onUpdate: 'CASCADE',
           onDelete: 'CASCADE'
@@ -36,6 +48,6 @@ export class idsClube1609158381746 implements MigrationInterface {
   }
 
   public async down (queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('idApiClube')
+    await queryRunner.dropTable('conquest')
   }
 }

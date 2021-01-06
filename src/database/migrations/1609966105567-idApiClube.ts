@@ -1,9 +1,9 @@
 import { MigrationInterface, QueryRunner, Table } from 'typeorm'
 
-export class createRodada1605897386707 implements MigrationInterface {
+export class idApiClube1609966105567 implements MigrationInterface {
   public async up (queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(new Table({
-      name: 'rodada',
+      name: 'idApiClube',
       columns: [
         {
           name: 'id',
@@ -14,31 +14,19 @@ export class createRodada1605897386707 implements MigrationInterface {
           generationStrategy: 'increment'
         },
         {
-          name: 'name',
+          name: 'idApi',
           type: 'integer'
         },
         {
-          name: 'number',
-          type: 'integer'
-        },
-        {
-          name: 'prevRodada',
-          type: 'integer'
-        },
-        {
-          name: 'proxRodada',
-          type: 'integer'
-        },
-        {
-          name: 'championshipId',
+          name: 'clubeId',
           type: 'integer'
         }
       ],
       foreignKeys: [
         {
-          name: 'ChampionshipRodada',
-          columnNames: ['championshipId'],
-          referencedTableName: 'championship',
+          name: 'idClubeClube',
+          columnNames: ['clubeId'],
+          referencedTableName: 'clube',
           referencedColumnNames: ['id'],
           onUpdate: 'CASCADE',
           onDelete: 'CASCADE'
@@ -48,6 +36,6 @@ export class createRodada1605897386707 implements MigrationInterface {
   }
 
   public async down (queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('rodada')
+    await queryRunner.dropTable('idApiClube')
   }
 }

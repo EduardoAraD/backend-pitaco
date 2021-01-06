@@ -3,7 +3,7 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToOne
 import Championship from './Championship'
 import Clube from './Clube'
 
-@Entity('clubeClassification')
+@Entity('standing')
 export default class ClubeClassification {
     @PrimaryGeneratedColumn('increment')
     id: number

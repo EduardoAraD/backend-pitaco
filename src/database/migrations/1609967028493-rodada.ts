@@ -1,9 +1,9 @@
 import { MigrationInterface, QueryRunner, Table } from 'typeorm'
 
-export class createPitaco1605119390719 implements MigrationInterface {
+export class rodada1609967028493 implements MigrationInterface {
   public async up (queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(new Table({
-      name: 'pitaco',
+      name: 'rodada',
       columns: [
         {
           name: 'id',
@@ -14,43 +14,31 @@ export class createPitaco1605119390719 implements MigrationInterface {
           generationStrategy: 'increment'
         },
         {
-          name: 'golsHome',
+          name: 'name',
           type: 'integer'
         },
         {
-          name: 'golsAway',
+          name: 'number',
           type: 'integer'
         },
         {
-          name: 'point',
+          name: 'prevRodada',
           type: 'integer'
         },
         {
-          name: 'exactScore',
+          name: 'proxRodada',
           type: 'integer'
         },
         {
-          name: 'userId',
-          type: 'integer'
-        },
-        {
-          name: 'matchId',
+          name: 'championshipId',
           type: 'integer'
         }
       ],
       foreignKeys: [
         {
-          name: 'PitacoUser',
-          columnNames: ['userId'],
-          referencedTableName: 'users',
-          referencedColumnNames: ['id'],
-          onUpdate: 'CASCADE',
-          onDelete: 'CASCADE'
-        },
-        {
-          name: 'PitacoMatch',
-          columnNames: ['matchId'],
-          referencedTableName: 'match',
+          name: 'ChampionshipRodada',
+          columnNames: ['championshipId'],
+          referencedTableName: 'championship',
           referencedColumnNames: ['id'],
           onUpdate: 'CASCADE',
           onDelete: 'CASCADE'
@@ -60,6 +48,6 @@ export class createPitaco1605119390719 implements MigrationInterface {
   }
 
   public async down (queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('pitaco')
+    await queryRunner.dropTable('rodada')
   }
 }

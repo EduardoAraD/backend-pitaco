@@ -1,9 +1,9 @@
 import { MigrationInterface, QueryRunner, Table } from 'typeorm'
 
-export class createMatch1605892820531 implements MigrationInterface {
+export class standing1609966909850 implements MigrationInterface {
   public async up (queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(new Table({
-      name: 'match',
+      name: 'standing',
       columns: [
         {
           name: 'id',
@@ -14,7 +14,35 @@ export class createMatch1605892820531 implements MigrationInterface {
           generationStrategy: 'increment'
         },
         {
-          name: 'matchIdApi',
+          name: 'points',
+          type: 'integer'
+        },
+        {
+          name: 'wins',
+          type: 'integer'
+        },
+        {
+          name: 'draw',
+          type: 'integer'
+        },
+        {
+          name: 'matchs',
+          type: 'integer'
+        },
+        {
+          name: 'goalsScored',
+          type: 'integer'
+        },
+        {
+          name: 'goalsConceded',
+          type: 'integer'
+        },
+        {
+          name: 'utilization',
+          type: 'integer'
+        },
+        {
+          name: 'championshipId',
           type: 'integer'
         },
         {
@@ -22,58 +50,22 @@ export class createMatch1605892820531 implements MigrationInterface {
           type: 'varchar'
         },
         {
-          name: 'stadium',
-          type: 'varchar'
-        },
-        {
-          name: 'hour',
-          type: 'varchar'
-        },
-        {
-          name: 'date',
-          type: 'varchar'
-        },
-        {
-          name: 'golsHome',
-          type: 'integer'
-        },
-        {
-          name: 'golsAway',
-          type: 'integer'
-        },
-        {
-          name: 'rodadaId',
-          type: 'integer'
-        },
-        {
-          name: 'clubeHomeId',
-          type: 'integer'
-        },
-        {
-          name: 'clubeAwayId',
+          name: 'clubeId',
           type: 'integer'
         }
       ],
       foreignKeys: [
         {
-          name: 'RodadaMatch',
-          columnNames: ['rodadaId'],
-          referencedTableName: 'rodada',
+          name: 'ChampionshipClubeClass',
+          columnNames: ['championshipId'],
+          referencedTableName: 'championship',
           referencedColumnNames: ['id'],
           onUpdate: 'CASCADE',
           onDelete: 'CASCADE'
         },
         {
-          name: 'ClubeHome',
-          columnNames: ['clubeHomeId'],
-          referencedTableName: 'clube',
-          referencedColumnNames: ['id'],
-          onUpdate: 'CASCADE',
-          onDelete: 'CASCADE'
-        },
-        {
-          name: 'ClubeAway',
-          columnNames: ['clubeAwayId'],
+          name: 'ClubeClass',
+          columnNames: ['clubeId'],
           referencedTableName: 'clube',
           referencedColumnNames: ['id'],
           onUpdate: 'CASCADE',
@@ -84,6 +76,6 @@ export class createMatch1605892820531 implements MigrationInterface {
   }
 
   public async down (queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('match')
+    await queryRunner.dropTable('standing')
   }
 }

@@ -1,38 +1,43 @@
 import { MigrationInterface, QueryRunner, Table } from 'typeorm'
 
-export class createClube1606069343066 implements MigrationInterface {
+export class championship1609966627607 implements MigrationInterface {
   public async up (queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(new Table({
-      name: 'clube',
+      name: 'championship',
       columns: [
         {
           name: 'id',
           type: 'integer',
           unsigned: true,
           isPrimary: true,
-          isGenerated: true
+          isGenerated: true,
+          generationStrategy: 'increment'
         },
         {
           name: 'name',
           type: 'varchar'
         },
         {
-          name: 'nameComplete',
+          name: 'startDate',
           type: 'varchar'
         },
         {
-          name: 'shortCode',
+          name: 'endDate',
           type: 'varchar'
         },
         {
-          name: 'logo',
-          type: 'varchar'
+          name: 'currentRodada',
+          type: 'integer'
+        },
+        {
+          name: 'seasonId',
+          type: 'integer'
         }
       ]
     }))
   }
 
   public async down (queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('clube')
+    await queryRunner.dropTable('championship')
   }
 }

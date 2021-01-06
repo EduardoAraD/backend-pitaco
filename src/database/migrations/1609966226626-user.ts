@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner, Table } from 'typeorm'
 
-export class createUser1605096522040 implements MigrationInterface {
+export class user1609966226626 implements MigrationInterface {
   public async up (queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(new Table({
       name: 'users',
@@ -48,8 +48,7 @@ export class createUser1605096522040 implements MigrationInterface {
           name: 'HeartClube',
           columnNames: ['clubeId'],
           referencedTableName: 'clube',
-          referencedColumnNames: ['id'],
-          onUpdate: 'CASCADE'
+          referencedColumnNames: ['id']
         }
       ]
     }))
