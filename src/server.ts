@@ -1,3 +1,5 @@
+import 'dotenv/config'
+
 import express from 'express'
 
 import routesAuth from './routes/auth'
@@ -12,4 +14,4 @@ app.use(express.json())
 app.use(routesAuth)
 app.use(routesProtect)
 
-app.listen(3333)
+app.listen(process.env.PORT || 3333)
