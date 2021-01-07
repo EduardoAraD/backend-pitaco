@@ -146,6 +146,7 @@ async function initAll (paramsChampionship: DataRequestChampionship) {
 async function Atualization () {
   try {
     const currentDate = new Date()
+    currentDate.setHours(currentDate.getHours() - 3)
     if (currentDate.getHours() >= 1 && currentDate.getHours() < 8) {
       return
     }
@@ -165,6 +166,7 @@ async function Atualization () {
       return await initAll(dataResultChampionship)
     }
     const data = new Date()
+    data.setHours(data.getHours() - 3)
     if (data.getHours() === 8 && data.getMinutes() <= 30) {
       return await atualizationMatchChampionship(championshipDB)
     }
@@ -252,6 +254,7 @@ async function Atualization () {
 
 async function atualizationMatchChampionship (championship: Championship) {
   const currentDate = new Date()
+  currentDate.setHours(currentDate.getHours() - 3)
   let currentRodada = 0
   let menorDiffTime = currentDate.getTime()
 
@@ -349,6 +352,7 @@ async function createRodadaMatchs (matchsAPI: MatchAPI[], idApiClubesDB: IdApiCl
   const matchsRodadaSaves: DataRodadaMatch[] = []
 
   const currentDate = new Date()
+  currentDate.setHours(currentDate.getHours() - 3)
   let currentRodada = 0
   let menorDiffTime = currentDate.getTime()
 
@@ -441,6 +445,7 @@ function defineStatusMatch (status: string, htScore: string, ftScore: string, da
     if (htScore === null || ftScore === null) return 'progress'
     else {
       const currentDate = new Date()
+      currentDate.setHours(currentDate.getHours() - 3)
       date.setHours(date.getHours() + 2)
       if (currentDate.getTime() <= date.getTime()) return 'progress'
       else return 'finished'

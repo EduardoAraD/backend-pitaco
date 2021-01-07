@@ -262,6 +262,8 @@ function hourLimitPitacoDate (date: string, hour: string): boolean {
   const dateMatch = stringForDate(date, hour)
   dateMatch.setHours(dateMatch.getHours() - 2)
   const currentDate = new Date()
+  currentDate.setHours(currentDate.getHours() - 3)
+
   if (dateMatch > currentDate) { return true }
   return false
 }

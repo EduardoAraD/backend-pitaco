@@ -185,8 +185,7 @@ export default {
       }
 
       const code = crypto.randomBytes(3).toString('hex')
-      const now = new Date()
-      now.setHours(now.getHours() + 2)
+      const now = new Date() // horario de 3 horas a mais no servidor
 
       await usersRepository.update(user.id, {
         codeResetPassword: code,
@@ -255,6 +254,7 @@ export default {
       }
 
       const now = new Date()
+      now.setHours(now.getHours() - 3)
       const codeExpires = new Date(user.codeResetExpires)
       if (now > codeExpires) {
         return response.status(400).send({ error: MessageError.CODEEXPIRED })
@@ -331,6 +331,7 @@ export default {
 
   async test (request: Request, response: Response) {
     const data = new Date()
+    data.setHours(data.getHours() - 3)
     return response.json({
       message:
       `Estamos funcionando: ${data.toLocaleDateString()} ${data.getHours()}:${data.getMinutes()}:${data.getSeconds()}`

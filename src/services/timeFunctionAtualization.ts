@@ -2,6 +2,7 @@ import { Atualization } from '../controllers/Atualization'
 
 const main = async () => {
   const data = new Date()
+  data.setHours(data.getHours() - 3)
   console.log(`Atualizando: ${data.getHours()}:${data.getMinutes()}`)
   await Atualization()
 }

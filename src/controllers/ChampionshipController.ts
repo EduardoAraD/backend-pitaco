@@ -124,6 +124,8 @@ export default {
     }
 
     const currentDate = new Date()
+    currentDate.setHours(currentDate.getHours() - 3)
+
     let championshipReturn: Championship = championshipsDB[0]
     let menor = currentDate.getTime()
     for (let i = 0; i < championshipsDB.length; i++) {
