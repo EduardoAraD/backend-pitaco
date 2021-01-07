@@ -397,12 +397,12 @@ async function getClube (idApi: number, name: string, shortCode: string, logo: s
   const idApiClube = idApiClubes.find(item => item.idApi === idApi)
   if (!idApiClube) {
     const IdApiClubeRepository = getRepository(IdApiClube)
-    const idApiClubeName = idApiClubes.find(item => item.clube.nameComplete.toLowerCase() === name.toLowerCase() &&
+    const idApiClubeName = idApiClubes.find(item => item.clube.name.toLowerCase() === name.toLowerCase() &&
       item.clube.shortCode === shortCode)
     if (!idApiClubeName) {
-      const nameResume = name.slice(-3).slice(0, 1) === ' ' ? name.slice(0, -3) : name
+      const nameFilter = name.slice(-3).slice(0, 1) === ' ' ? name.slice(0, -3) : name
       const dataClube = {
-        name: nameResume,
+        name: nameFilter,
         nameComplete: name,
         shortCode,
         logo
