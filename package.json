@@ -6,8 +6,8 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/server.js",
-    "dev": "tsnd -r tsconfig-paths/register --respawn --transpile-only --ignore-watch node_modules --no-notify src/server.ts",
-    "typeorm": "tsnd ./node_modules/typeorm/cli.js"
+    "dev": "ts-node-dev -r tsconfig-paths/register --respawn --transpile-only --ignore-watch node_modules --no-notify src/server.ts",
+    "typeorm": "ts-node-dev ./node_modules/typeorm/cli.js"
   },
   "repository": {
     "type": "git",
@@ -53,7 +53,7 @@
     "express": "^4.17.1",
     "jsonwebtoken": "^8.5.1",
     "nodemailer": "^6.4.16",
-    "pg": "^8.5.1",
+    "sqlite3": "^5.0.0",
     "typeorm": "^0.2.29"
   }
 }
