@@ -5,6 +5,7 @@ export default {
     return {
       id: clube.id,
       name: clube.name,
+      nameComplete: clube.nameComplete,
       shortCode: clube.shortCode,
       logo: clube.logo
     }

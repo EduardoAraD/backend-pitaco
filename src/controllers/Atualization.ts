@@ -147,9 +147,6 @@ async function Atualization () {
   try {
     const currentDate = new Date()
     currentDate.setHours(currentDate.getHours() - 3)
-    if (currentDate.getHours() >= 1 && currentDate.getHours() < 8) {
-      return
-    }
     const resultChampionship = await fetchData('/soccer/seasons', 'league_id=693')
     const championshipFilter = resultChampionship[resultChampionship.length - 1]
 
@@ -400,11 +397,12 @@ async function createRodadaMatchs (matchsAPI: MatchAPI[], idApiClubesDB: IdApiCl
 async function getClube (idApi: number, name: string, shortCode: string, logo: string, idApiClubes: IdApiClube[]): Promise<Clube> {
   const idApiClube = idApiClubes.find(item => item.idApi === idApi)
   if (!idApiClube) {
+    console.log(`${name}, ${shortCode}`)
     const IdApiClubeRepository = getRepository(IdApiClube)
-    const idApiClubeName = idApiClubes.find(item => item.clube.nameComplete.toLowerCase() === name.toLowerCase() &&
-      item.clube.shortCode === shortCode)
+    const idApiClubeName = idApiClubes.find(item => item.clube.nameComplete.toLowerCase() === name.toLowerCase())
     if (!idApiClubeName) {
       const nameResume = name.slice(-3).slice(0, 1) === ' ' ? name.slice(0, -3) : name
+      console.log('Entrou e criou em standing')
       const dataClube = {
         name: nameResume,
         nameComplete: name,
@@ -422,7 +420,9 @@ async function getClube (idApi: number, name: string, shortCode: string, logo: s
       } as IdApiClube
 
       const idApiClubeCreate = IdApiClubeRepository.create(dataIdApiClube)
-      await IdApiClubeRepository.save(idApiClubeCreate)
+      const idApiClubeSave = await IdApiClubeRepository.save(idApiClubeCreate)
+
+      idApiClubes.push(idApiClubeSave)
 
       return clubeSave
     } else {
@@ -432,7 +432,9 @@ async function getClube (idApi: number, name: string, shortCode: string, logo: s
       } as IdApiClube
 
       const idApiClubeCreate = IdApiClubeRepository.create(dataIdApiClube)
-      await IdApiClubeRepository.save(idApiClubeCreate)
+      const idApiClubeSave = await IdApiClubeRepository.save(idApiClubeCreate)
+
+      idApiClubes.push(idApiClubeSave)
 
       return idApiClubeName.clube
     }
@@ -461,19 +463,21 @@ async function createClubeStandings (standing: StandingAPI[], idApiClubesDB: IdA
     const utilization = (parseInt(standing[i].overall.won) * 3 + parseInt(standing[i].overall.draw)) /
       (parseInt(standing[i].overall.games_played) * 3)
     const clubeDB = await getClubStanding(parseInt(standing[i].team_id, 10), idApiClubesDB)
-    const itemStanding = {
-      points: parseInt(standing[i].points),
-      clube: clubeDB,
-      wins: parseInt(standing[i].overall.won),
-      draw: parseInt(standing[i].overall.draw),
-      matchs: parseInt(standing[i].overall.games_played),
-      goalsScored: parseInt(standing[i].overall.goals_scored),
-      goalsConceded: parseInt(standing[i].overall.goals_against),
-      utilization: parseInt((utilization * 100).toFixed(1)),
-      status: defineStatusItemStanding(standing[i].status, standing[i].result)
-    } as Standing
+    if (clubeDB) {
+      const itemStanding = {
+        points: parseInt(standing[i].points),
+        clube: clubeDB,
+        wins: parseInt(standing[i].overall.won),
+        draw: parseInt(standing[i].overall.draw),
+        matchs: parseInt(standing[i].overall.games_played),
+        goalsScored: parseInt(standing[i].overall.goals_scored),
+        goalsConceded: parseInt(standing[i].overall.goals_against),
+        utilization: parseInt((utilization * 100).toFixed(1)),
+        status: defineStatusItemStanding(standing[i].status, standing[i].result)
+      } as Standing
 
-    standingSaves.push(itemStanding)
+      standingSaves.push(itemStanding)
+    }
   }
 
   return filterStandings(standingSaves)
@@ -499,7 +503,9 @@ async function getClubStanding (idApi: number, idApiClubes: IdApiClube[]): Promi
   const idApiClube = idApiClubes.find(item => item.idApi === idApi)
   if (!idApiClube) {
     const clubeResult:ClubeAPI = await fetchData(`soccer/teams/${idApi}`)
-    return getClube(idApi, clubeResult.name, clubeResult.short_code, clubeResult.logo, idApiClubes)
+    const checkedLogo = await checkUrlLogo(clubeResult.logo)
+    if (checkedLogo) { return getClube(idApi, clubeResult.name, clubeResult.short_code, clubeResult.logo, idApiClubes) }
+    return null
   }
   return idApiClube.clube
 }
@@ -548,6 +554,7 @@ async function createClube (resultClubes: ClubeAPI[]): Promise<IdApiClube[]> {
           if (!clubeExist) {
             const checkedLogo = await checkUrlLogo(dataClube.logo)
             if (checkedLogo) {
+              console.log(`time: ${dataClube.nameComplete}, ${dataClube.name}, ${dataClube.logo}`)
               const clubeCreate = ClubeRepository.create(dataClube)
               const clubeSave = await ClubeRepository.save(clubeCreate)
 
