@@ -91,7 +91,7 @@ const fetchData = async (url: string, params?: string) => {
   return result.data.data
 }
 
-async function checkUrlLogo (url: string) {
+async function checkUrlLogo (url: string): Promise<boolean> {
   return await Axios.get(url).then(() => true).catch(() => false)
 }
 
@@ -397,12 +397,12 @@ async function getClube (idApi: number, name: string, shortCode: string, logo: s
   const idApiClube = idApiClubes.find(item => item.idApi === idApi)
   if (!idApiClube) {
     const IdApiClubeRepository = getRepository(IdApiClube)
-    const idApiClubeName = idApiClubes.find(item => item.clube.name.toLowerCase() === name.toLowerCase() &&
+    const idApiClubeName = idApiClubes.find(item => item.clube.nameComplete.toLowerCase() === name.toLowerCase() &&
       item.clube.shortCode === shortCode)
     if (!idApiClubeName) {
-      const nameFilter = name.slice(-3).slice(0, 1) === ' ' ? name.slice(0, -3) : name
+      const nameResume = name.slice(-3).slice(0, 1) === ' ' ? name.slice(0, -3) : name
       const dataClube = {
-        name: nameFilter,
+        name: nameResume,
         nameComplete: name,
         shortCode,
         logo
@@ -493,7 +493,7 @@ function filterStandings (standing: ClubeClassification[]): ClubeClassification[
 async function getClubStanding (idApi: number, idApiClubes: IdApiClube[]): Promise<Clube> {
   const idApiClube = idApiClubes.find(item => item.idApi === idApi)
   if (!idApiClube) {
-    const clubeResult = (await fetchData(`soccer/teams/${idApi}`)) as ClubeAPI
+    const clubeResult:ClubeAPI = await fetchData(`soccer/teams/${idApi}`)
     return getClube(idApi, clubeResult.name, clubeResult.short_code, clubeResult.logo, idApiClubes)
   }
   return idApiClube.clube
