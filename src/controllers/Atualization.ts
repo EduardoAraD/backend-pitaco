@@ -147,6 +147,9 @@ async function Atualization () {
   try {
     const currentDate = new Date()
     currentDate.setHours(currentDate.getHours() - 3)
+    if (currentDate.getHours() >= 1 && currentDate.getHours() < 8) {
+      return
+    }
     const resultChampionship = await fetchData('/soccer/seasons', 'league_id=693')
     const championshipFilter = resultChampionship[resultChampionship.length - 1]
 
@@ -397,12 +400,10 @@ async function createRodadaMatchs (matchsAPI: MatchAPI[], idApiClubesDB: IdApiCl
 async function getClube (idApi: number, name: string, shortCode: string, logo: string, idApiClubes: IdApiClube[]): Promise<Clube> {
   const idApiClube = idApiClubes.find(item => item.idApi === idApi)
   if (!idApiClube) {
-    console.log(`${name}, ${shortCode}`)
     const IdApiClubeRepository = getRepository(IdApiClube)
     const idApiClubeName = idApiClubes.find(item => item.clube.nameComplete.toLowerCase() === name.toLowerCase())
     if (!idApiClubeName) {
       const nameResume = name.slice(-3).slice(0, 1) === ' ' ? name.slice(0, -3) : name
-      console.log('Entrou e criou em standing')
       const dataClube = {
         name: nameResume,
         nameComplete: name,
@@ -554,7 +555,6 @@ async function createClube (resultClubes: ClubeAPI[]): Promise<IdApiClube[]> {
           if (!clubeExist) {
             const checkedLogo = await checkUrlLogo(dataClube.logo)
             if (checkedLogo) {
-              console.log(`time: ${dataClube.nameComplete}, ${dataClube.name}, ${dataClube.logo}`)
               const clubeCreate = ClubeRepository.create(dataClube)
               const clubeSave = await ClubeRepository.save(clubeCreate)
 
