@@ -16,4 +16,4 @@ app.use(express.json())
 app.use(routesAuth)
 app.use(routesProtect)
 
-app.listen(3333)
+app.listen(process.env.PORT || 3333)
