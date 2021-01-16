@@ -145,11 +145,6 @@ async function initAll (paramsChampionship: DataRequestChampionship) {
 
 async function Atualization () {
   try {
-    const currentDate = new Date()
-    currentDate.setHours(currentDate.getHours() - 3)
-    if (currentDate.getHours() >= 1 && currentDate.getHours() < 8) {
-      return
-    }
     const resultChampionship = await fetchData('/soccer/seasons', 'league_id=693')
     const championshipFilter = resultChampionship[resultChampionship.length - 1]
 
@@ -167,9 +162,6 @@ async function Atualization () {
     }
     const data = new Date()
     data.setHours(data.getHours() - 3)
-    if (data.getHours() === 8 && data.getMinutes() <= 30) {
-      return await atualizationMatchChampionship(championshipDB)
-    }
 
     const matchsLive = await fetchData('/soccer/matches',
       `season_id=${championshipDB.seasonId}&date_from=${data.getFullYear()}-${data.getMonth() + 1}-${data.getDate() - 1}&date_to=${data.getFullYear()}-${data.getMonth() + 1}-${data.getDate() + 2}`)
@@ -181,10 +173,11 @@ async function Atualization () {
     const idApiClubesDB = await IdApiClubeRepository.find({ relations: ['clube'] })
     const { matches } = await createRodadaMatchs(matchsLive, idApiClubesDB)
 
+    let currentRodada = 0
+    let menorDiffTime = data.getTime()
+
     const MatchRepository = getRepository(Match)
     const RodadaRepository = getRepository(Rodada)
-
-    let updateStandings = false
 
     for (let i = 0; i < matches.length; i++) {
       const dataMatch = matches[i].match
@@ -208,112 +201,58 @@ async function Atualization () {
             golsHome: dataMatch.golsHome,
             golsAway: dataMatch.golsAway
           })
-          updateStandings = true
           if (dataMatch.status !== 'notstarted') {
             await PitacoController.resultPitaco(matchDB, dataMatch.golsHome, dataMatch.golsAway)
           }
         }
       }
+
+      if (dataMatch.status !== 'finished') {
+        const dateMatch = stringForDate(dataMatch.date, dataMatch.hour)
+        const diffTimeDate = Math.abs(data.getTime() - dateMatch.getTime())
+        if (menorDiffTime > diffTimeDate) {
+          menorDiffTime = diffTimeDate
+          currentRodada = matches[i].numRodada
+        }
+      }
     }
 
-    if (updateStandings) {
-      const StandingsRepository = getRepository(Standing)
-      const standingsDB = await StandingsRepository.find({ relations: ['clube', 'championshipId'] })
-      const standingsChamspionshipDB = standingsDB.filter(item => item.championshipId.id === championshipDB.id)
+    if (currentRodada !== 0 && currentRodada !== championshipDB.currentRodada) {
+      const ChampionshipRepository = getRepository(Championship)
+      await ChampionshipRepository.update(championshipDB.id, {
+        currentRodada
+      })
+    }
 
-      const resultStandings = await fetchData('/soccer/standings', `season_id=${dataResultChampionship.seasonId}`)
+    const StandingsRepository = getRepository(Standing)
+    const standingsDB = await StandingsRepository.find({ relations: ['clube', 'championshipId'] })
+    const standingsChamspionshipDB = standingsDB.filter(item => item.championshipId.id === championshipDB.id)
 
-      const standing = await createClubeStandings(resultStandings.standings, idApiClubesDB)
+    const resultStandings = await fetchData('/soccer/standings', `season_id=${dataResultChampionship.seasonId}`)
 
-      for (let i = 0; i < standing.length; i++) {
-        const itemStanding = standing[i]
+    const standing = await createClubeStandings(resultStandings.standings, idApiClubesDB)
 
-        const itemStandingDB = standingsChamspionshipDB.find(item => item.clube.id === itemStanding.clube.id)
-        if (itemStandingDB) {
-          if (!equalsItemStanding(itemStanding, itemStandingDB)) {
-            await StandingsRepository.update(itemStandingDB.id, {
-              points: itemStanding.points,
-              wins: itemStanding.wins,
-              draw: itemStanding.draw,
-              matchs: itemStanding.matchs,
-              goalsScored: itemStanding.goalsScored,
-              goalsConceded: itemStanding.goalsConceded,
-              utilization: itemStanding.utilization,
-              status: itemStanding.status
-            })
-          }
-        } else {
-          console.log(`não passou: ${itemStanding}`)
+    for (let i = 0; i < standing.length; i++) {
+      const itemStanding = standing[i]
+
+      const itemStandingDB = standingsChamspionshipDB.find(item => item.clube.id === itemStanding.clube.id)
+      if (itemStandingDB) {
+        if (!equalsItemStanding(itemStanding, itemStandingDB)) {
+          await StandingsRepository.update(itemStandingDB.id, {
+            points: itemStanding.points,
+            wins: itemStanding.wins,
+            draw: itemStanding.draw,
+            matchs: itemStanding.matchs,
+            goalsScored: itemStanding.goalsScored,
+            goalsConceded: itemStanding.goalsConceded,
+            utilization: itemStanding.utilization,
+            status: itemStanding.status
+          })
         }
       }
     }
   } catch (err) {
     console.log(err)
-  }
-}
-
-async function atualizationMatchChampionship (championship: Championship) {
-  const currentDate = new Date()
-  currentDate.setHours(currentDate.getHours() - 3)
-  let currentRodada = 0
-  let menorDiffTime = currentDate.getTime()
-
-  const MatchRepository = getRepository(Match)
-  const matchsDB = await MatchRepository.find({ relations: ['clubeHome', 'clubeAway', 'rodadaId'] })
-
-  const IdApiClubeRepository = getRepository(IdApiClube)
-  const idApiClubesDB = await IdApiClubeRepository.find({ relations: ['clube'] })
-
-  const RodadaRepository = getRepository(Rodada)
-
-  const resultMatchs = await fetchData('/soccer/matches',
-      `season_id=${championship.seasonId}&date_from=${currentDate.getFullYear()}-${currentDate.getMonth() + 1}-${currentDate.getDate()}`)
-
-  const { matches } = await createRodadaMatchs(resultMatchs, idApiClubesDB)
-
-  for (let i = 0; i < matches.length; i++) {
-    const matchData = matches[i].match
-    const rodadaDB = await RodadaRepository.findOne({ championshipId: championship, number: matches[i].numRodada })
-
-    const matchFilter = matchsDB.find(match => (match.rodadaId.id === rodadaDB.id &&
-      match.clubeHome.id === matchData.clubeHome.id &&
-      match.clubeAway.id === matchData.clubeAway.id))
-
-    if (!matchFilter) {
-      matchData.rodadaId = rodadaDB
-      const matchCreate = MatchRepository.create(matchData)
-      await MatchRepository.save(matchCreate)
-    } else {
-      if (!equalsMatch(matchFilter, matchData)) {
-        await MatchRepository.update(matchFilter.id, {
-          status: matchData.status,
-          stadium: matchData.stadium,
-          date: matchData.date,
-          hour: matchData.hour,
-          golsHome: matchData.golsHome,
-          golsAway: matchData.golsAway
-        })
-        if (matchData.status !== 'notstarted') {
-          await PitacoController.resultPitaco(matchFilter, matchData.golsHome, matchData.golsAway)
-        }
-      }
-    }
-
-    if (matchData.status !== 'finished') {
-      const date = stringForDate(matchData.date, matchData.hour)
-      const diffTimeDate = Math.abs(currentDate.getTime() - date.getTime())
-      if (menorDiffTime > diffTimeDate) {
-        menorDiffTime = diffTimeDate
-        currentRodada = matches[i].numRodada
-      }
-    }
-  }
-
-  if (currentRodada !== 0 && currentRodada !== championship.currentRodada) {
-    const ChampionshipRepository = getRepository(Championship)
-    await ChampionshipRepository.update(championship.id, {
-      currentRodada
-    })
   }
 }
 
@@ -453,7 +392,7 @@ function defineStatusMatch (status: string, htScore: string, ftScore: string, da
       if (currentDate.getTime() <= date.getTime()) return 'progress'
       else return 'finished'
     }
-  }
+  } else if (status === 'inplay') return 'progress'
   return 'notstarted'
 }
 
@@ -614,8 +553,14 @@ function filterMatchRodada (matchs: DataRodadaMatch[]): Match[] {
         item.match.clubeAway.id === itemInit.clubeAway.id))
 
       if (matchItemFilter.length > 1) {
-        const index = matchItemFilter.length - 1
-        matchsFilter.push(matchItemFilter[index].match)
+        const matchsFilterFinished = matchItemFilter.filter(item => item.match.status === 'finished')
+        if (matchsFilterFinished.length !== 0) {
+          const index = matchsFilterFinished.length - 1
+          matchsFilter.push(matchsFilterFinished[index].match)
+        } else {
+          const index = matchItemFilter.length - 1
+          matchsFilter.push(matchItemFilter[index].match)
+        }
       } else {
         matchsFilter.push(matchItemFilter[0].match)
       }
