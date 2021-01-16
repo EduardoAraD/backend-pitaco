@@ -18,6 +18,10 @@ export class conquest1609967364220 implements MigrationInterface {
           type: 'integer'
         },
         {
+          name: 'description',
+          type: 'varchar'
+        },
+        {
           name: 'leagueId',
           type: 'integer'
         },
