@@ -13,6 +13,7 @@ import IdApiClube from '../models/IdApiClube'
 import { stringForDate } from '../functions'
 
 import PitacoController from './PitacoController'
+import ConquestController from './ConquestController'
 
 interface DataRequestChampionship {
   name: string,
@@ -132,7 +133,8 @@ async function initAll (paramsChampionship: DataRequestChampionship) {
       currentRodada: currentRodada,
       seasonId: dataResultChampionship.seasonId,
       standings: standingChampionship,
-      rodadas: rodadasChampionship
+      rodadas: rodadasChampionship,
+      finishConquest: 0
     } as Championship
 
     const ChampionshipRepository = getRepository(Championship)
@@ -155,13 +157,25 @@ async function Atualization () {
       seasonId: parseInt(championshipFilter.season_id)
     } as DataRequestChampionship
 
-    const ChampionshipRepositoty = getRepository(Championship)
-    const championshipDB = await ChampionshipRepositoty.findOne({ seasonId: dataResultChampionship.seasonId })
+    const ChampionshipRepository = getRepository(Championship)
+    const championshipDB = await ChampionshipRepository.findOne({ seasonId: dataResultChampionship.seasonId })
     if (!championshipDB) {
       return await initAll(dataResultChampionship)
     }
+
+    const dateEnd = new Date(`${dataResultChampionship.endDate} 12:00:00`)
+    const endDateString = DateForStringDay(dateEnd)
+    if (endDateString !== championshipDB.endDate) {
+      ChampionshipRepository.update(championshipDB.id, { endDate: endDateString })
+      championshipDB.endDate = endDateString
+    }
+
     const data = new Date()
     data.setHours(data.getHours() - 3)
+    dateEnd.setDate(dateEnd.getDate() + 3)
+    if (data.getTime() >= dateEnd.getTime()) {
+      ConquestController.createConquests(championshipDB)
+    }
 
     const matchsLive = await fetchData('/soccer/matches',
       `season_id=${championshipDB.seasonId}&date_from=${data.getFullYear()}-${data.getMonth() + 1}-${data.getDate() - 1}&date_to=${data.getFullYear()}-${data.getMonth() + 1}-${data.getDate() + 2}`)
