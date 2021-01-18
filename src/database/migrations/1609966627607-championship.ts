@@ -32,6 +32,10 @@ export class championship1609966627607 implements MigrationInterface {
         {
           name: 'seasonId',
           type: 'integer'
+        },
+        {
+          name: 'finishConquest',
+          type: 'integer'
         }
       ]
     }))
