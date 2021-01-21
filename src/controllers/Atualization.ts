@@ -316,7 +316,6 @@ async function createRodadaMatchs (matchsAPI: MatchAPI[], idApiClubesDB: IdApiCl
     date.setHours(date.getHours() - 3)
 
     const dataMatch = {
-      status: defineStatusMatch(itemResultMatch.status, itemResultMatch.stats.ht_score, itemResultMatch.stats.ft_score, date),
       stadium: itemResultMatch.venue.name,
       date: DateForStringDay(date),
       hour: date.toLocaleTimeString(),
@@ -328,7 +327,8 @@ async function createRodadaMatchs (matchsAPI: MatchAPI[], idApiClubesDB: IdApiCl
         itemResultMatch.home_team.logo, idApiClubesDB),
       clubeAway: await getClube(parseInt(itemResultMatch.away_team.team_id, 10),
         itemResultMatch.away_team.name, itemResultMatch.away_team.short_code,
-        itemResultMatch.away_team.logo, idApiClubesDB)
+        itemResultMatch.away_team.logo, idApiClubesDB),
+      status: defineStatusMatch(itemResultMatch.status, itemResultMatch.stats.ht_score, itemResultMatch.stats.ft_score, date)
     } as Match
 
     const dataRodadaMatch = {
