@@ -5,7 +5,7 @@ import Leagues from '../models/Leagues'
 import Points from '../models/Points'
 import Conquest from '../models/Conquest'
 
-import { firstPoint } from 'src/functions'
+import { firstPoint } from '../functions'
 
 export default {
   async createConquests (championship: Championship) {
