@@ -11,6 +11,9 @@ export default class Conquest {
     @Column()
     position: number
 
+    @Column()
+    description: string
+
     @ManyToOne(() => Users, user => user.conquests)
     @JoinColumn({ name: 'userId' })
     user: Users

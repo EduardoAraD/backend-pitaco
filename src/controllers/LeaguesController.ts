@@ -8,6 +8,9 @@ import Points from '../models/Points'
 import Users from '../models/Users'
 import Clube from '../models/Clube'
 import Championship from '../models/Championship'
+import Rodada from '../models/Rodada'
+import Match from '../models/Match'
+import Pitaco from '../models/Pitaco'
 
 import LeaguesView from '../views/leagues_view'
 import PointView from '../views/points_view'
@@ -173,6 +176,146 @@ export default {
         page: data.page,
         points: PointView.renderMany(points),
         total: totalPoints
+      })
+    } catch (e) {
+      console.log(e)
+      return response.status(400).send({ error: 'Error on Show Point in League HeartClub, try again.' })
+    }
+  },
+
+  async showPointsUserLastRodada (request: Request, response: Response) {
+    try {
+      const { id, page, limit, championship } = request.body
+      const data = {
+        id: parseInt(id, 10) || 0,
+        page: parseInt(page, 10) || 0,
+        limit: parseInt(limit, 10) || 0,
+        championship: parseInt(championship, 10) || 0
+      }
+
+      const ChampionshipRepository = getRepository(Championship)
+      const championshipDB = await ChampionshipRepository.findOne(data.championship)
+      if (!championshipDB) { return response.status(400).send({ error: MessageError.CHAMPIONSHIPNOTFOUND }) }
+
+      const RodadaRepository = getRepository(Rodada)
+      const rodadaDB = await RodadaRepository.findOne({ number: championshipDB.currentRodada, championshipId: championshipDB })
+      if (!rodadaDB) { return response.status(400).send({ error: MessageError.RODADANOTFOUND }) }
+
+      const MatchRepository = getRepository(Match)
+      const matchs = await MatchRepository.find({ rodadaId: rodadaDB })
+
+      const PointsRepository = getRepository(Points)
+      const usersLeague = (await PointsRepository.find({
+        relations: ['userId', 'leagueId']
+      })).filter(point => data.id === point.leagueId.id && point.accept === 1)
+        .map(item => item.userId)
+
+      const PitacoRepository = getRepository(Pitaco)
+
+      const pointsDB: Points[] = []
+      for (let i = 0; i < usersLeague.length; i++) {
+        const itemUser = usersLeague[i]
+        let points = 0
+        let exactScore = 0
+        for (let j = 0; j < matchs.length; j++) {
+          const itemMatch = matchs[j]
+          const pitacoDB = await PitacoRepository.findOne({ userId: itemUser, matchId: itemMatch })
+          if (pitacoDB) {
+            points += pitacoDB.point
+            exactScore += pitacoDB.exactScore
+          }
+        }
+
+        const pointUser = {
+          accept: 1,
+          exactScore: exactScore.toString(),
+          points: points.toString(),
+          userId: itemUser
+        } as Points
+
+        pointsDB.push(pointUser)
+      }
+
+      const totalPoints = pointsDB.length
+      const points = pointsDB.sort((a, b) => firstPoint(a, b)).splice(data.limit * (data.page - 1), data.limit)
+
+      return response.json({
+        limit: data.limit,
+        page: data.page,
+        points: PointView.renderMany(points),
+        total: totalPoints,
+        rodada: rodadaDB.number
+      })
+    } catch (e) {
+      console.log(e)
+      return response.status(400).send({ error: 'Error on Show Point in a last rodada in League, try again.' })
+    }
+  },
+
+  async showPointsUserHeartClubLastRodada (request: Request, response: Response) {
+    try {
+      const { id, clubeId, page, limit, championship } = request.body
+      const data = {
+        id: parseInt(id, 10) || 0,
+        clube: parseInt(clubeId, 10) || 0,
+        page: parseInt(page, 10) || 1,
+        limit: parseInt(limit, 10) || 0,
+        championship: parseInt(championship, 10) || 0
+      }
+
+      const ClubeRepository = getRepository(Clube)
+      const clubeDB = await ClubeRepository.findOne({ id: data.clube })
+      if (!clubeDB) { return response.status(400).send({ error: MessageError.CLUBNOTFOUND }) }
+
+      const UserRepository = getRepository(Users)
+      const usersDB = await UserRepository.find({ heartClub: clubeDB })
+
+      const ChampionshipRepository = getRepository(Championship)
+      const championshipDB = await ChampionshipRepository.findOne(data.championship)
+      if (!championshipDB) { return response.status(400).send({ error: MessageError.CHAMPIONSHIPNOTFOUND }) }
+
+      const RodadaRepository = getRepository(Rodada)
+      const rodadaDB = await RodadaRepository.findOne({ number: championshipDB.currentRodada, championshipId: championshipDB })
+      if (!rodadaDB) { return response.status(400).send({ error: MessageError.RODADANOTFOUND }) }
+
+      const MatchRepository = getRepository(Match)
+      const matchs = await MatchRepository.find({ rodadaId: rodadaDB })
+
+      const PitacoRepository = getRepository(Pitaco)
+
+      const pointsDB: Points[] = []
+      for (let i = 0; i < usersDB.length; i++) {
+        const itemUser = usersDB[i]
+        let points = 0
+        let exactScore = 0
+        for (let j = 0; j < matchs.length; j++) {
+          const itemMatch = matchs[j]
+          const pitacoDB = await PitacoRepository.findOne({ userId: itemUser, matchId: itemMatch })
+          if (pitacoDB) {
+            points += pitacoDB.point
+            exactScore += pitacoDB.exactScore
+          }
+        }
+
+        const pointUser = {
+          accept: 1,
+          exactScore: exactScore.toString(),
+          points: points.toString(),
+          userId: itemUser
+        } as Points
+
+        pointsDB.push(pointUser)
+      }
+
+      const totalPoints = pointsDB.length
+      const points = pointsDB.sort((a, b) => firstPoint(a, b)).splice(data.limit * (data.page - 1), data.limit)
+
+      return response.json({
+        limit: data.limit,
+        page: data.page,
+        points: PointView.renderMany(points),
+        total: totalPoints,
+        rodada: rodadaDB.number
       })
     } catch (e) {
       console.log(e)
