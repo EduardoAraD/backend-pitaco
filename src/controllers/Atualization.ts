@@ -10,7 +10,7 @@ import Rodada from '../models/Rodada'
 import Match from '../models/Match'
 import IdApiClube from '../models/IdApiClube'
 
-import { stringForDate } from '../functions'
+import { addDays, removeDays, stringForDate } from '../functions'
 
 import PitacoController from './PitacoController'
 import ConquestController from './ConquestController'
@@ -171,6 +171,8 @@ async function Atualization () {
     }
 
     const data = new Date()
+    const dateFromForRequest = removeDays(data, 1)
+    const dateToForRequest = addDays(data, 2)
     data.setHours(data.getHours() - 3)
     dateEnd.setDate(dateEnd.getDate() + 3)
     if (data.getTime() >= dateEnd.getTime()) {
@@ -178,7 +180,7 @@ async function Atualization () {
     }
 
     const matchsLive = await fetchData('/soccer/matches',
-      `season_id=${championshipDB.seasonId}&date_from=${data.getFullYear()}-${data.getMonth() + 1}-${data.getDate() - 1}&date_to=${data.getFullYear()}-${data.getMonth() + 1}-${data.getDate() + 2}`)
+      `season_id=${championshipDB.seasonId}&date_from=${dateFromForRequest.getFullYear()}-${dateFromForRequest.getMonth() + 1}-${dateFromForRequest.getDate()}&date_to=${dateToForRequest.getFullYear()}-${dateToForRequest.getMonth() + 1}-${dateToForRequest.getDate()}`)
     if (matchsLive.length === 0) {
       return
     }
@@ -221,13 +223,11 @@ async function Atualization () {
         }
       }
 
-      if (dataMatch.status !== 'finished') {
-        const dateMatch = stringForDate(dataMatch.date, dataMatch.hour)
-        const diffTimeDate = Math.abs(data.getTime() - dateMatch.getTime())
-        if (menorDiffTime > diffTimeDate) {
-          menorDiffTime = diffTimeDate
-          currentRodada = matches[i].numRodada
-        }
+      const dateMatch = stringForDate(dataMatch.date, dataMatch.hour)
+      const diffTimeDate = Math.abs(data.getTime() - dateMatch.getTime())
+      if (menorDiffTime > diffTimeDate) {
+        menorDiffTime = diffTimeDate
+        currentRodada = matches[i].numRodada
       }
     }
 
