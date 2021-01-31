@@ -1,9 +1,61 @@
 import Match from './models/Match'
 import Points from './models/Points'
 
-export function stringForDate (date: string, hour: string) {
+export function stringForDate (date: string, hour: string): Date {
   const [day, mount, year] = date.split('/')
   return new Date(`${year}/${mount}/${day} ${hour}`)
+}
+
+export function addDays (date: Date, days: number): Date {
+  const mouth = date.getMonth() + 1
+  const year = date.getFullYear()
+  const day = date.getDate()
+  const newDate = day + days
+
+  if (newDate > 28 && mouth === 2) {
+    if (year % 4 === 0 && newDate > 29) {
+      return new Date(`${year}/${mouth + 1}/${newDate - 29} 12:00`)
+    } else {
+      return new Date(`${year}/${mouth + 1}/${newDate - 28} 12:00`)
+    }
+  } else if (newDate > 31 && (mouth === 1 || mouth === 3 ||
+    mouth === 5 || mouth === 7 || mouth === 8 || mouth === 10 || mouth === 12)) {
+    if (mouth === 12) {
+      return new Date(`${year + 1}/${1}/${newDate - 31} 12:00`)
+    } else {
+      return new Date(`${year}/${mouth + 1}/${newDate - 31} 12:00`)
+    }
+  } else if (newDate > 30 && (mouth === 4 || mouth === 6 || mouth === 9 || mouth === 11)) {
+    return new Date(`${year}/${mouth + 1}/${newDate - 30} 12:00`)
+  } else {
+    return new Date(`${year}/${mouth}/${newDate} 12:00`)
+  }
+}
+
+export function removeDays (date: Date, days: number): Date {
+  const mouth = date.getMonth() + 1
+  const year = date.getFullYear()
+  const day = date.getDate()
+  const newDate = day - days
+
+  if (newDate < 1) {
+    if (mouth === 1) {
+      return new Date(`${year - 1}/${12}/${newDate + 31} 12:00`)
+    } else if (mouth === 3) {
+      if (year % 4 === 0) {
+        return new Date(`${year}/${2}/${newDate + 29} 12:00`)
+      } else {
+        return new Date(`${year}/${2}/${newDate + 28} 12:00`)
+      }
+    } else if (mouth === 2 || mouth === 4 || mouth === 6 ||
+      mouth === 8 || mouth === 9 || mouth === 11) {
+      return new Date(`${year}/${mouth - 1}/${newDate + 31} 12:00`)
+    } else {
+      return new Date(`${year}/${mouth - 1}/${newDate + 30} 12:00`)
+    }
+  } else {
+    return new Date(`${year}/${mouth}/${newDate} 12:00`)
+  }
 }
 
 export function firstMatch (match1: Match, match2: Match) {
