@@ -516,6 +516,53 @@ export default {
     }
   },
 
+  async leagueOfUser (request: Request, response: Response) {
+    try {
+      const { email } = request.body
+      const data = { email: email || '' }
+
+      const error = emailValidade(data.email)
+      if (error !== '') {
+        return response.status(400).send({ error })
+      }
+
+      const usersRepository = getRepository(Users)
+      const user = await usersRepository.findOne({ email: data.email }, { relations: ['heartClub'] })
+      if (!user) { return response.status(400).send({ error: MessageError.USERNOTFOUND }) }
+
+      const LeagueRepository = getRepository(Leagues)
+      const leaguesDB = (await LeagueRepository.find({ relations: ['dono'] }))
+        .filter(item => item.sistem === 0)
+
+      const PointRepository = getRepository(Points)
+      const pointsDB = await PointRepository.find({ relations: ['userId', 'leagueId'] })
+      const pointsOfUser = pointsDB.filter(item => item.userId.id === user.id && item.accept === 1)
+
+      const leagueGuest = leaguesDB.filter(league => {
+        for (let i = 0; i < pointsOfUser.length; i++) {
+          if (league.id === pointsOfUser[i].leagueId.id) { return true }
+        }
+        return false
+      })
+
+      const leagues = leagueGuest.map(item => {
+        item.points = []
+        const points = pointsDB.filter(point => point.leagueId.id === item.id)
+          .sort((a, b) => firstPoint(a, b))
+
+        const point = points.find(item => item.userId.id === user.id)
+        const position = points.indexOf(point)
+
+        return LeaguesView.renderPoint(item, position, point)
+      })
+
+      return response.json(leagues)
+    } catch (e) {
+      console.log(e)
+      return response.status(400).send({ error: 'Error in league of User, try again.' })
+    }
+  },
+
   async create (request: Request, response: Response) {
     try {
       const { email, description, trophy, name, championship } = request.body
