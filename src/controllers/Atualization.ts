@@ -1,5 +1,4 @@
 import { getRepository } from 'typeorm'
-import Axios from 'axios'
 
 import api from '../services/api'
 
@@ -10,7 +9,7 @@ import Rodada from '../models/Rodada'
 import Match from '../models/Match'
 import IdApiClube from '../models/IdApiClube'
 
-import { addDays, removeDays, stringForDate } from '../functions'
+import { addDays, removeDays, stringForDate, checkUrlLogo } from '../functions'
 
 import PitacoController from './PitacoController'
 import ConquestController from './ConquestController'
@@ -90,10 +89,6 @@ interface RodadaAPI {
 const fetchData = async (url: string, params?: string) => {
   const result = await api.get(`${url}?apikey=${process.env.KEY_API}${params ? `&${params}` : ''}`)
   return result.data.data
-}
-
-async function checkUrlLogo (url: string): Promise<boolean> {
-  return await Axios.get(url).then(() => true).catch(() => false)
 }
 
 async function initAll (paramsChampionship: DataRequestChampionship) {

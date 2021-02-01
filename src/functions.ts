@@ -1,9 +1,14 @@
+import Axios from 'axios'
 import Match from './models/Match'
 import Points from './models/Points'
 
 export function stringForDate (date: string, hour: string): Date {
   const [day, mount, year] = date.split('/')
   return new Date(`${year}/${mount}/${day} ${hour}`)
+}
+
+export async function checkUrlLogo (url: string): Promise<boolean> {
+  return await Axios.get(url).then(() => true).catch(() => false)
 }
 
 export function addDays (date: Date, days: number): Date {
@@ -100,6 +105,8 @@ export const MessageError = {
   NICKNAMEINVALID: 'Nickname com apenas letras e números.',
   NAMENOTINFORMED: 'Nome não informado.',
   NAMEINVALID: 'Nome com apenas letras e números.',
+  AVATARNOTINFORMED: 'Url não informada',
+  AVATARINVALID: 'Url inválida',
   DESCRIPTIONNOTINFORMED: 'Descrição não informada.',
   DESCRIPTIONINVALID: 'Descrição com apenas letras e números.',
   EMAILNOTINFORMED: 'E-mail não informado.',
