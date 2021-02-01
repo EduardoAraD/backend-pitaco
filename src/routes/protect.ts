@@ -12,6 +12,7 @@ const routes = Router()
 routes.use(auth)
 
 routes.post('/init-user', UsersController.initUser)
+routes.post('/edit-user', UsersController.update)
 routes.post('/choose-club', UsersController.chooseClub)
 
 routes.post('/friend', FriendController.create)

@@ -13,7 +13,7 @@ import Clube from '../models/Clube'
 
 import UsersView from '../views/users_view'
 
-import { MessageError } from '../functions'
+import { checkUrlLogo, MessageError } from '../functions'
 
 import ChampionshipController from './ChampionshipController'
 
@@ -270,6 +270,37 @@ export default {
     } catch (err) {
       console.log(err)
       return response.status(400).send({ error: 'Erro on reset password, try again.' })
+    }
+  },
+
+  async update (request: Request, response: Response) {
+    try {
+      const { avatar, nickname, email } = request.body
+      const data = { email: email || '', nickname: nickname || '', avatar: avatar || '' }
+
+      if (data.nickname === '') { return response.status(400).send({ error: MessageError.NICKNAMENOTINFORMED }) }
+      if (data.avatar === '') { return response.status(400).send({ error: MessageError.AVATARNOTINFORMED }) }
+      const urlValided = await checkUrlLogo(data.avatar)
+      if (!urlValided) { return response.status(400).send({ error: MessageError.AVATARINVALID }) }
+
+      const UserRepository = getRepository(Users)
+      const userDBNick = await UserRepository.findOne({ name: data.nickname })
+      if (userDBNick) { return response.status(400).send({ error: MessageError.NICKNAMEEXISTING }) }
+
+      const userDB = await UserRepository.findOne({ email: data.email }, { relations: ['points', 'heartClub', 'conquests'] })
+      if (!userDB) { return response.status(400).send({ error: MessageError.USERNOTFOUND }) }
+
+      await UserRepository.update({ id: userDB.id }, {
+        avatar: data.avatar,
+        name: data.nickname
+      })
+      userDB.avatar = data.avatar
+      userDB.name = data.nickname
+
+      return response.json(UsersView.renderItemPoint(userDB))
+    } catch (err) {
+      console.log(err)
+      return response.status(400).send({ error: 'Error in update User, try again.' })
     }
   },
 
