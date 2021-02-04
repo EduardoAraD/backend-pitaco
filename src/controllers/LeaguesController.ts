@@ -228,8 +228,8 @@ export default {
 
         const pointUser = {
           accept: 1,
-          exactScore: exactScore.toString(),
-          points: points.toString(),
+          exactScore: exactScore,
+          points: points,
           userId: itemUser
         } as Points
 
@@ -299,8 +299,8 @@ export default {
 
         const pointUser = {
           accept: 1,
-          exactScore: exactScore.toString(),
-          points: points.toString(),
+          exactScore: exactScore,
+          points: points,
           userId: itemUser
         } as Points
 
@@ -686,8 +686,8 @@ export default {
       if (pointDB) { return response.status(400).send({ error: MessageError.SOLICITATIONEXISTING }) }
 
       const dataPoint = {
-        points: '0',
-        exactScore: '0',
+        points: 0,
+        exactScore: 0,
         accept: 0,
         userId: userDB,
         leagueId: leagueDB

@@ -3,3 +3,4 @@ dist
 
 yarn.lock
 .env
+src/database/database.sqlite
