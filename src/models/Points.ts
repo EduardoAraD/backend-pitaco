@@ -9,10 +9,10 @@ export default class Points {
     id: number;
 
     @Column()
-    points: string;
+    points: number;
 
     @Column()
-    exactScore: string;
+    exactScore: number;
 
     @Column()
     accept: number;

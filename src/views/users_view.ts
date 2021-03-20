@@ -29,6 +29,16 @@ export default {
       heartClub: user.heartClub ? clubeView.renderItem(user.heartClub) : {}
     }
   },
+  renderItemPoint (user:User) {
+    return {
+      name: user.name,
+      email: user.email,
+      avatar: user.avatar,
+      points: pointsView.renderManyNotUser(user.points || []),
+      conquests: conquestView.renderMany(user.conquests || []),
+      heartClub: user.heartClub ? clubeView.renderItem(user.heartClub) : {}
+    }
+  },
   renderMany (users: User[]) {
     return users.map(user => this.renderItem(user))
   }
