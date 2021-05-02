@@ -7,13 +7,13 @@ module.exports = {
   database: process.env.TYPEORM_DATABASE,
   entities: [process.env.TYPEORM_ENTITIES],
   migrations: [process.env.TYPEORM_MIGRATIONS],
-  ssl: true,
-  dialectOptions: {
-    ssl: {
-      rejectUnauthorized: false,
-    }
-  },
   cli: {
     migrationsDir: process.env.TYPEORM_MIGRATIONS_DIR,
+  },
+  ssl: true,
+  extra: {
+    ssl: {
+      rejectUnauthorized: false,
+    },
   },
 }
