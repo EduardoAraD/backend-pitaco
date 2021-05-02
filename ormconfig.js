@@ -9,7 +9,10 @@ module.exports = {
   migrations: [process.env.TYPEORM_MIGRATIONS],
   ssl: true,
   dialectOptions: {
-    "ssl": { "require": true }
+    ssl: {
+      require: true,
+      rejectUnauthorized: false,
+    }
   },
   cli: {
     migrationsDir: process.env.TYPEORM_MIGRATIONS_DIR,
