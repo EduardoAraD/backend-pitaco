@@ -91,7 +91,7 @@ const fetchData = async (url: string, params?: string) => {
   return result.data.data
 }
 
-async function initAll (paramsChampionship: DataRequestChampionship) {
+async function initAll(paramsChampionship: DataRequestChampionship) {
   try {
     const resultMyLeagues = await fetchData('/soccer/leagues', 'subscribed=true')
     const myLeagueFilter = resultMyLeagues.find(item => item.league_id === 693)
@@ -140,7 +140,7 @@ async function initAll (paramsChampionship: DataRequestChampionship) {
   }
 }
 
-async function Atualization () {
+async function Atualization() {
   try {
     const resultChampionship = await fetchData('/soccer/seasons', 'league_id=693')
     const championshipFilter = resultChampionship[resultChampionship.length - 1]
@@ -265,7 +265,7 @@ async function Atualization () {
   }
 }
 
-function createRodada (resultRodada: RodadaAPI[], matches: DataRodadaMatch[]): Rodada[] {
+function createRodada(resultRodada: RodadaAPI[], matches: DataRodadaMatch[]): Rodada[] {
   const rodadasChampionship: Rodada[] = []
 
   for (let i = 0; i < resultRodada.length; i++) {
@@ -295,7 +295,7 @@ function createRodada (resultRodada: RodadaAPI[], matches: DataRodadaMatch[]): R
   return rodadasChampionship
 }
 
-async function createRodadaMatchs (matchsAPI: MatchAPI[], idApiClubesDB: IdApiClube[]):
+async function createRodadaMatchs(matchsAPI: MatchAPI[], idApiClubesDB: IdApiClube[]):
   Promise<{ matches: DataRodadaMatch[], currentRodada: number }> {
   const matchsRodadaSaves: DataRodadaMatch[] = []
 
@@ -345,7 +345,7 @@ async function createRodadaMatchs (matchsAPI: MatchAPI[], idApiClubesDB: IdApiCl
   return { matches: matchsRodadaSaves, currentRodada }
 }
 
-async function getClube (idApi: number, name: string, shortCode: string, logo: string, idApiClubes: IdApiClube[]): Promise<Clube> {
+async function getClube(idApi: number, name: string, shortCode: string, logo: string, idApiClubes: IdApiClube[]): Promise<Clube> {
   const idApiClube = idApiClubes.find(item => item.idApi === idApi)
   if (!idApiClube) {
     const IdApiClubeRepository = getRepository(IdApiClube)
@@ -391,7 +391,7 @@ async function getClube (idApi: number, name: string, shortCode: string, logo: s
   return idApiClube.clube
 }
 
-function defineStatusMatch (status: string, htScore: string, ftScore: string, date: Date) {
+function defineStatusMatch(status: string, htScore: string, ftScore: string, date: Date) {
   if (status === 'finished') {
     if (htScore === null || ftScore === null) return 'progress'
     else {
@@ -405,12 +405,12 @@ function defineStatusMatch (status: string, htScore: string, ftScore: string, da
   return 'notstarted'
 }
 
-async function createClubeStandings (standing: StandingAPI[], idApiClubesDB: IdApiClube[]): Promise<Standing[]> {
+async function createClubeStandings(standing: StandingAPI[], idApiClubesDB: IdApiClube[]): Promise<Standing[]> {
   const standingSaves: Standing[] = []
 
   for (let i = 0; i < standing.length; i++) {
     const utilization = (parseInt(standing[i].overall.won) * 3 + parseInt(standing[i].overall.draw)) /
-      (parseInt(standing[i].overall.games_played) * 3)
+      (parseInt(standing[i].overall.games_played) * 3) || 0
     const clubeDB = await getClubStanding(parseInt(standing[i].team_id, 10), idApiClubesDB)
     if (clubeDB) {
       const itemStanding = {
@@ -432,7 +432,7 @@ async function createClubeStandings (standing: StandingAPI[], idApiClubesDB: IdA
   return filterStandings(standingSaves)
 }
 
-function filterStandings (standing: Standing[]): Standing[] {
+function filterStandings(standing: Standing[]): Standing[] {
   const standingFilter: Standing[] = []
   for (let i = 0; i < standing.length; i++) {
     const itemStanding = standingFilter.find(item => item.clube.id === standing[i].clube.id)
@@ -448,10 +448,10 @@ function filterStandings (standing: Standing[]): Standing[] {
   return standingFilter
 }
 
-async function getClubStanding (idApi: number, idApiClubes: IdApiClube[]): Promise<Clube> {
+async function getClubStanding(idApi: number, idApiClubes: IdApiClube[]): Promise<Clube> {
   const idApiClube = idApiClubes.find(item => item.idApi === idApi)
   if (!idApiClube) {
-    const clubeResult:ClubeAPI = await fetchData(`soccer/teams/${idApi}`)
+    const clubeResult: ClubeAPI = await fetchData(`soccer/teams/${idApi}`)
     const checkedLogo = await checkUrlLogo(clubeResult.logo)
     if (checkedLogo) { return getClube(idApi, clubeResult.name, clubeResult.short_code, clubeResult.logo, idApiClubes) }
     return null
@@ -459,7 +459,7 @@ async function getClubStanding (idApi: number, idApiClubes: IdApiClube[]): Promi
   return idApiClube.clube
 }
 
-function defineStatusItemStanding (status: string, result: string) {
+function defineStatusItemStanding(status: string, result: string) {
   if (status === 'Promotion') {
     if (result === 'Copa Libertadores') return 'L'
     else if (result === 'Copa Libertadores Qualification') return 'LQ'
@@ -471,7 +471,7 @@ function defineStatusItemStanding (status: string, result: string) {
   return ''
 }
 
-async function createClube (resultClubes: ClubeAPI[]): Promise<IdApiClube[]> {
+async function createClube(resultClubes: ClubeAPI[]): Promise<IdApiClube[]> {
   const idApiClubesSaves: IdApiClube[] = []
   const clubesSaves: Clube[] = []
   const IdApiClubeRepository = getRepository(IdApiClube)
@@ -547,7 +547,7 @@ async function createClube (resultClubes: ClubeAPI[]): Promise<IdApiClube[]> {
   return idApiClubesSaves
 }
 
-function filterMatchRodada (matchs: DataRodadaMatch[]): Match[] {
+function filterMatchRodada(matchs: DataRodadaMatch[]): Match[] {
   const matchsFilter: Match[] = []
   let i = 0
   while (matchsFilter.length < 10) {
@@ -558,7 +558,7 @@ function filterMatchRodada (matchs: DataRodadaMatch[]): Match[] {
     if (matchsFilter.filter(item => (item.clubeHome.id === itemInit.id &&
       item.clubeAway.id === itemInit.clubeAway.id)).length <= 0) {
       const matchItemFilter = matchs.filter(item =>
-        (item.match.clubeHome.id === itemInit.clubeHome.id &&
+      (item.match.clubeHome.id === itemInit.clubeHome.id &&
         item.match.clubeAway.id === itemInit.clubeAway.id))
 
       if (matchItemFilter.length > 1) {
@@ -581,20 +581,20 @@ function filterMatchRodada (matchs: DataRodadaMatch[]): Match[] {
   return matchsFilter
 }
 
-function equalsMatch (match1: Match, match2: Match): boolean {
+function equalsMatch(match1: Match, match2: Match): boolean {
   return match1.status === match2.status && match1.stadium === match2.stadium &&
     match1.date === match2.date && match1.hour === match2.hour &&
     match1.golsHome === match2.golsHome && match1.golsAway === match2.golsAway
 }
 
-function equalsItemStanding (standing1: Standing, standing2: Standing): boolean {
+function equalsItemStanding(standing1: Standing, standing2: Standing): boolean {
   return standing1.points === standing2.points && standing1.wins === standing2.wins &&
     standing1.draw === standing2.draw && standing1.matchs === standing2.matchs &&
     standing1.goalsScored === standing2.goalsScored && standing1.goalsConceded === standing2.goalsConceded &&
     standing1.status === standing2.status
 }
 
-function DateForStringDay (data: Date) {
+function DateForStringDay(data: Date) {
   return `${data.getDate()}/${data.getMonth() + 1}/${data.getFullYear()}`
 }
 
